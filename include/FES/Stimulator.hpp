@@ -1,9 +1,9 @@
 #pragma once
 #include "FES/Muscle.hpp"
+
 namespace fes{
     class Stimulator {
     public:
-        
 
         Stimulator(std::string& name, std::string& com_port);
 
@@ -11,9 +11,9 @@ namespace fes{
 
         bool open_port();
 
-        int open_port0(void);
+        // int open_port0(void);
 
-        int open_port1(void);
+        // int open_port1(void);
 
         int configure_port(int fd);
 
@@ -24,7 +24,10 @@ namespace fes{
         int Board_Setup_0(int fd);
 
     private:
+        // variables for serial communication
         HANDLE hComm;
+        DCB dcb = {0};
+
         std::string& name_;
         std::string& com_port_;
         bool open_;

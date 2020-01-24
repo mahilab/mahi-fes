@@ -48,42 +48,52 @@ namespace fes{
         return true;
     }
 
-    int Stimulator::open_port0(void){ // open_port0 is a function that will open the first serial port to communicate with the first stim board
-        int fd; // file description for the serial port
+    // int Stimulator::open_port0(void){ // open_port0 is a function that will open the first serial port to communicate with the first stim board
+    //     int fd; // file description for the serial port
 
-        fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+    //     fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
 
-        if (fd == -1) // if open is unsucessful
-        {
-            printf("open_port: Unable to open /dev/ttyUSB0. \n");
-        }
-        else
-        {
-            fcntl(fd, F_SETFL, 0);
-            printf("Port is Open. \n");
-        }
+    //     if (fd == -1) // if open is unsucessful
+    //     {
+    //         printf("open_port: Unable to open /dev/ttyUSB0. \n");
+    //     }
+    //     else
+    //     {
+    //         fcntl(fd, F_SETFL, 0);
+    //         printf("Port is Open. \n");
+    //     }
 
-        return(fd);
-    } //open_port0
+    //     return(fd);
+    // } //open_port0
 
 
-    int Stimulator::open_port1(void){ // open_port1 is a function that will open the second serial port to comunicate with the second stim board
-        int fd; // file description for the serial port
+    // int Stimulator::open_port1(void){ // open_port1 is a function that will open the second serial port to comunicate with the second stim board
+    //     int fd; // file description for the serial port
 
-        fd = open("/dev/ttyUSB1", O_RDWR | O_NOCTTY | O_NDELAY);
-        if (fd == -1) // if open is unsucessful
-        {
-            printf("open_port: Unable to open /dev/ttyUSB1. \n");
-        }
-        else
-        {
-            fcntl(fd, F_SETFL, 0);
-            printf("Port is Open. \n");
-        }
+    //     fd = open("/dev/ttyUSB1", O_RDWR | O_NOCTTY | O_NDELAY);
+    //     if (fd == -1) // if open is unsucessful
+    //     {
+    //         printf("open_port: Unable to open /dev/ttyUSB1. \n");
+    //     }
+    //     else
+    //     {
+    //         fcntl(fd, F_SETFL, 0);
+    //         printf("Port is Open. \n");
+    //     }
 
-        return(fd);
-    } //open_port
+    //     return(fd);
+    // } //open_port
 
+    int Stimulator::configure_port(HANDLE hComm_){  // configure_port establishes the settings for each serial port
+        dcb.DCBlength = sizeof(DCB);
+        dcbSerialParams.BaudRate=CBR_19200;
+        dcbSerialParams.ByteSize=8;
+        dcbSerialParams.StopBits=ONESTOPBIT;
+        dcbSerialParams.Parity=NOPARITY;
+
+
+
+    } //configure_port
 
     int Stimulator::configure_port(int fd){  // configure_port establishes the settings for each serial port
         struct termios port_settings;      // structure to store the port settings in
