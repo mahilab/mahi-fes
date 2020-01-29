@@ -7,26 +7,28 @@ namespace fes{
 
         Stimulator(std::string& name, std::string& com_port);
 
-        int on_enable();
+        bool enable();
 
-        bool open_port();
+        bool open_port(HANDLE& hComm_);
 
         // int open_port0(void);
 
         // int open_port1(void);
 
-        int configure_port(int fd);
+        bool configure_port(HANDLE& hComm_);
 
         void set_stim(int pulse_width_);
 
-        int Stimulator::checksum(unsigned char myarray[], int m); // checksum is a function that preforms checksums of all of the byte strings used in this code
+        int checksum(unsigned char myarray[], int m); // checksum is a function that preforms checksums of all of the byte strings used in this code
         
-        int Board_Setup_0(int fd);
+        bool initialize_board(HANDLE& hComm_);
+
+        std::string get_name();
 
     private:
         // variables for serial communication
         HANDLE hComm;
-        DCB dcb = {0};
+        DCB dcbSerialParams = {0};
 
         std::string& name_;
         std::string& com_port_;
