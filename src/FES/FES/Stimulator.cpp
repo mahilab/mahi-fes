@@ -1,6 +1,8 @@
 #include <FES/Stimulator.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>
+#include <MEL/Core/Timer.hpp>
+#include <MEL/Utility/System.hpp>
 #include <Windows.h>
 #include <tchar.h>
 
@@ -13,16 +15,21 @@ namespace fes{
         open_(false)
     {
         print("Stimulator Created");
+        enable();
+    }
+
+    Stimulator::~Stimulator(){
+        if(is_enabled()){
+            CloseHandle(hComm);
+            print("Stimulator Closed");
+        }
     }
 
     // Open serial port ttyUSB0 and store parameters in fd0
     bool Stimulator::enable() {
-        if(!open_port(hComm)){
-            LOG(Error) << "Failed to open port";
-            return false;
-        }
-        configure_port(hComm);                 // Configure the parameters for serial port ttyUSB0
-        initialize_board(hComm);                  // Write stim board setup commands to serial port ttyUSB0
+        open_ = open_port(hComm); // open the comport with read/write permissions
+        configure_port(hComm);    // Configure the parameters for serial port ttyUSB0
+        initialize_board(hComm);  // Write stim board setup commands to serial port ttyUSB0
     }
 
     bool Stimulator::open_port(HANDLE& hComm_){
@@ -55,6 +62,7 @@ namespace fes{
     bool Stimulator::configure_port(HANDLE& hComm_){  // configure_port establishes the settings for each serial port
 
         // http://bd.eduweb.hhs.nl/micprg/pdf/serial-win.pdf
+
         dcbSerialParams.DCBlength = sizeof(DCB);
 
         if (!GetCommState(hComm_, &dcbSerialParams)) {
@@ -62,10 +70,27 @@ namespace fes{
             return false;
         }
 
-        dcbSerialParams.BaudRate=CBR_9600;
-        dcbSerialParams.ByteSize=8;
-        dcbSerialParams.StopBits=ONESTOPBIT;
-        dcbSerialParams.Parity=NOPARITY;
+        // set parameters to use for serial communication
+
+        // set the baud rate that we will communicate at to 9600
+        dcbSerialParams.BaudRate = CBR_9600;
+
+        // 8 bits in the bytes transmitted and received.
+        dcbSerialParams.ByteSize = 8;
+        
+        // Specify that we are using one stop bit
+        dcbSerialParams.StopBits = ONESTOPBIT;
+
+        // Specify that we are using no parity 
+        dcbSerialParams.Parity = NOPARITY;
+
+        // Disable all parameters dealing with flow control
+        dcbSerialParams.fOutX = FALSE;
+        dcbSerialParams.fInX  = FALSE;
+        dcbSerialParams.fRtsControl = RTS_CONTROL_DISABLE;
+        dcbSerialParams.fDtrControl = DTR_CONTROL_DISABLE;
+        // dcbSerialParams.fOutxCtsFlow = FALSE;
+        // dcbSerialParams.fOutxDsrFlow = FALSE;
 
         if(!SetCommState(hComm_, &dcbSerialParams)){
             LOG(Error) << "Error setting serial port state";
@@ -97,57 +122,77 @@ namespace fes{
         return csum;
     } // checksum
 
-    bool Stimulator::intialize_board(HANDLE& hComm_){
-        
-        fd_set rdfs;
-        struct timeval timeout;
+    bool Stimulator::initialize_board(HANDLE& hComm_){
+
+        // delay time after sending setup messages of serial comm
+        Time setup_time = milliseconds(100);
 
         //Create byte array
-        unsigned char chan_set1[] = { 0x04, 0x80, 0x47, 0x07, 0x00, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x01, 0x00 };  // channel 1 setup
-        unsigned char chan_set2[] = { 0x04, 0x80, 0x47, 0x07, 0x01, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x23, 0x00 };  // Channel 2 Setup
-        unsigned char chan_set3[] = { 0x04, 0x80, 0x47, 0x07, 0x02, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x45, 0x00 };  // Channel 3 Setup
-        unsigned char chan_set4[] = { 0x04, 0x80, 0x47, 0x07, 0x03, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x67, 0x00 };  // Channel 4 Setup
-        unsigned char crt_sched[] = { 0x04, 0x80, 0x10, 0x03, 0xAA, 0x00, 0x19, 0x00 };  // Create Schedule
-        unsigned char crt_evnt1[] = { 0x04, 0x80, 0x15, 0x09, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x20, 0x00, 0x00 }; // Create Event 1
+        //Structure of byte arrays:
+        //  Destination address - always 0x04
+        //  Source address - always 0x80
+        //  Message type - see message commands in header file
+        //  Message Length - length of message without header or checksum
+        //  Message - Bytes of the message - must be of length Message Length
+        //  Checksum Calculation - add each of the bytes, mask the lower byte of sum and add cary byte, then invert sum
+
+        //Structure of channel setup messages:
+        //  1 byte:  Port channel - lower 4 bits are channel, upper for bits are port (always 0): aka always 0x0a where a is channel number
+        //  1 byte:  Amplitude limit - max amplitude the channel will outport
+        //  1 byte:  Pulse Width Limit - max pulse with that channel will output
+        //  2 bytes: Interphase Delay in usec - space between phases of the waveform (can be from 10-65535)
+        //  1 byte:  Aspect Ratio - designates the proportion of the amplitude of the first phase to the second phase.
+        //             - The lower 4 bits represent the first phase and the upper 4 bits represent the second phase. 0x11 is 1 to 1 ratio
+        //  1 byte:  AnodeCathode - for 4 bipolar channels (what we have) these are 0x01, 0x23, 0x45, 0x67 respectively
         
-        unsigned char sync_msg1[] = { 0x04, 0x80, 0x1B, 0x01, 0xAA, 0x00 }; // Sync Message 1
+        //                          /Destination address  /Source address /Message type
+        unsigned char chan_set1[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x00, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x01, 0x00 };  // channel 1 setup
+        unsigned char chan_set2[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x01, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x23, 0x00 };  // Channel 2 Setup
+        unsigned char chan_set3[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x02, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x45, 0x00 };  // Channel 3 Setup
+        unsigned char chan_set4[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x03, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x67, 0x00 };  // Channel 4 Setup
 
-        chan_set1[(sizeof(chan_set1) / sizeof(*chan_set1)) - 1] = checksum(chan_set1, (sizeof(chan_set1) / sizeof(*chan_set1)));
-        write(fd, chan_set1, (sizeof(chan_set1) / sizeof(*chan_set1))); // Channel 1 Setup
-                                                                        
-        usleep(1000000);
+        write_setup_message(hComm_, chan_set1, "Channel 1", setup_time);
+        write_setup_message(hComm_, chan_set2, "Channel 2", setup_time);
+        write_setup_message(hComm_, chan_set3, "Channel 3", setup_time);
+        write_setup_message(hComm_, chan_set4, "Channel 4", setup_time);
 
-        chan_set2[(sizeof(chan_set2) / sizeof(*chan_set2)) - 1] = checksum(chan_set2, (sizeof(chan_set2) / sizeof(*chan_set2)));
-        write(fd, chan_set2, (sizeof(chan_set2) / sizeof(*chan_set2))); // Channel 2 Setup
-                                                                        
-        usleep(1000000);
+        unsigned char crt_sched[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CREATE_SCHEDULE_MSG, 0x03, 0xAA, 0x00, 0x19, 0x00 };                          // Create Schedule
 
-        chan_set3[(sizeof(chan_set3) / sizeof(*chan_set3)) - 1] = checksum(chan_set3, (sizeof(chan_set3) / sizeof(*chan_set3)));
-        write(fd, chan_set3, (sizeof(chan_set3) / sizeof(*chan_set3))); // Channel 3 Setup
-                                                                        
-        usleep(1000000);
+        write_setup_message(hComm_, crt_sched, "Schedule" , setup_time);
 
-        chan_set4[(sizeof(chan_set4) / sizeof(*chan_set4)) - 1] = checksum(chan_set4, (sizeof(chan_set4) / sizeof(*chan_set4)));
-        write(fd, chan_set4, (sizeof(chan_set4) / sizeof(*chan_set4))); // Channel 4 Setup
-                                                                        
-        usleep(1000000);
+        unsigned char crt_evnt1[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CREATE_EVENT_MSG, 0x09, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x20, 0x00, 0x00 }; // Create Event 1
 
-        crt_sched[(sizeof(crt_sched) / sizeof(*crt_sched)) - 1] = checksum(crt_sched, (sizeof(crt_sched) / sizeof(*crt_sched)));
-        write(fd, crt_sched, (sizeof(crt_sched) / sizeof(*crt_sched))); // Create Schedule
-                                                                        
-        usleep(1000000);
+        write_setup_message(hComm_, crt_evnt1, "Event 1"  , setup_time);
 
-        crt_evnt1[(sizeof(crt_evnt1) / sizeof(*crt_evnt1)) - 1] = checksum(crt_evnt1, (sizeof(crt_evnt1) / sizeof(*crt_evnt1)));
-        write(fd, crt_evnt1, (sizeof(crt_evnt1) / sizeof(*crt_evnt1))); // Create Event 1
-                                                                        
-        usleep(1000000);
+        unsigned char sync_msg1[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, SYNC_MSG, 0x01, 0xAA, 0x00 }; // Sync Message 1
 
-        sync_msg1[(sizeof(sync_msg1) / sizeof(*sync_msg1)) - 1] = checksum(sync_msg1, (sizeof(sync_msg1) / sizeof(*sync_msg1)));
-        write(fd, sync_msg1, (sizeof(sync_msg1) / sizeof(*sync_msg1))); // Sync Message 1
-                                                                        
-        usleep(1000000);
+        write_setup_message(hComm_, crt_evnt1, "Sync Msg" , setup_time);
 
-        printf("Setup Complete. \n");
+        print("Setup Complete. \n");
+
+        return true;
+    }
+
+    bool Stimulator::is_enabled(){
+        return open_;
+    }
+
+    bool Stimulator::write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_,const mel::Time delay_time_){
+
+        DWORD dwBytesWritten = 0;
+
+        setup_message_[(sizeof(setup_message_) / sizeof(*setup_message_)) - 1] = checksum(setup_message_, (sizeof(setup_message_) / sizeof(*setup_message_)));
+        if(!WriteFile(handle_, setup_message_, (sizeof(setup_message_) / sizeof(*setup_message_)),&dwBytesWritten,NULL)){
+            LOG(Error) << "Error in " << message_string_ << "Setup.";
+            return false;
+        }
+        else{
+            LOG(Error) << message_string_ << "Setup was successful.";
+            return false;
+        }
+
+        sleep(delay_time_);
+        return true;
     }
 
 
