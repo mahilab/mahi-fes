@@ -1,5 +1,5 @@
 #pragma once
-#include "FES/Muscle.hpp"
+#include "FES/Core/Muscle.hpp"
 #include <string>
 
 class Muscle {

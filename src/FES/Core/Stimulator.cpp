@@ -1,4 +1,6 @@
-#include <FES/Stimulator.hpp>
+#include <FES/Core/Stimulator.hpp>
+#include <FES/Core/Channel.hpp>
+#include <Utility/Utility.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Core/Timer.hpp>
@@ -9,12 +11,12 @@
 using namespace mel;
 
 namespace fes{
-    Stimulator::Stimulator(std::string& name, std::string& com_port):
-        name_(name),
-        com_port_(com_port),
-        open_(false)
+    Stimulator::Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_):
+        name(name_),
+        com_port(com_port_),
+        open(false),
+        channels(channels_)
     {
-        print("Stimulator Created");
         enable();
     }
 
@@ -27,27 +29,28 @@ namespace fes{
 
     // Open serial port ttyUSB0 and store parameters in fd0
     bool Stimulator::enable() {
-        open_ = open_port(hComm); // open the comport with read/write permissions
+        open = open_port(hComm); // open the comport with read/write permissions
         configure_port(hComm);    // Configure the parameters for serial port ttyUSB0
         initialize_board(hComm);  // Write stim board setup commands to serial port ttyUSB0
     }
 
     bool Stimulator::open_port(HANDLE& hComm_){
 
-        std::string com_port_formatted = "\\\\.\\" + com_port_;
+        std::string com_port_formatted = "\\\\.\\" + com_port;
 
         // the comport must be formatted as an LPCWSTR, so we need to get it into that form from a std::string
         std::wstring stemp = std::wstring(com_port_formatted.begin(), com_port_formatted.end());
         LPCWSTR com_port_lpcwstr = stemp.c_str();
 
-        hComm_ = CreateFile(com_port_lpcwstr,             //port name
+        hComm_ = CreateFile(com_port_lpcwstr,            //port name
                            GENERIC_READ | GENERIC_WRITE, //Read/Write
                            0,                            // No Sharing
                            NULL,                         // No Security
-                           OPEN_EXISTING,// Open existing port only
-                           0,            // Non Overlapped I/O
-                           NULL);        // Null for Comm Devices
+                           OPEN_EXISTING,                // Open existing port only
+                           0,                            // Non Overlapped I/O
+                           NULL);                        // Null for Comm Devices
 
+        // Check if creating the comport was successful or not and log it
         if (hComm_ == INVALID_HANDLE_VALUE){
             LOG(Error) << "Failed to open Stimulator" << get_name();
             return false;
@@ -92,6 +95,7 @@ namespace fes{
         // dcbSerialParams.fOutxCtsFlow = FALSE;
         // dcbSerialParams.fOutxDsrFlow = FALSE;
 
+        // Set communication parameters for the serial port
         if(!SetCommState(hComm_, &dcbSerialParams)){
             LOG(Error) << "Error setting serial port state";
             return false;
@@ -108,31 +112,20 @@ namespace fes{
             return false;
         }
 
-        // SET SOFTWARE/HARDWARE FLOW CONTROL???????????
-
         return true;
     }
-
-    int Stimulator::checksum(unsigned char myarray[], int m){  // checksum is a function that preforms checksums of all of the byte strings used in this code
-        int csum = 0;
-        for (int i = 0; i < m - 1; i++) {
-            csum += myarray[i];
-        }
-        csum = ((0x00FF & csum) + (csum >> 8)) ^ 0xFF;
-        return csum;
-    } // checksum
 
     bool Stimulator::initialize_board(HANDLE& hComm_){
 
         // delay time after sending setup messages of serial comm
-        Time setup_time = milliseconds(100);
+        
 
         //Create byte array
         //Structure of byte arrays:
         //  Destination address - always 0x04
         //  Source address - always 0x80
         //  Message type - see message commands in header file
-        //  Message Length - length of message without header or checksum
+        //  Message Length - length of message without header (everything up to msg length) or checksum
         //  Message - Bytes of the message - must be of length Message Length
         //  Checksum Calculation - add each of the bytes, mask the lower byte of sum and add cary byte, then invert sum
 
@@ -145,58 +138,79 @@ namespace fes{
         //             - The lower 4 bits represent the first phase and the upper 4 bits represent the second phase. 0x11 is 1 to 1 ratio
         //  1 byte:  AnodeCathode - for 4 bipolar channels (what we have) these are 0x01, 0x23, 0x45, 0x67 respectively
         
-        //                          /Destination address  /Source address /Message type
-        unsigned char chan_set1[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x00, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x01, 0x00 };  // channel 1 setup
-        unsigned char chan_set2[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x01, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x23, 0x00 };  // Channel 2 Setup
-        unsigned char chan_set3[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x02, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x45, 0x00 };  // Channel 3 Setup
-        unsigned char chan_set4[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CHANNEL_SETUP_MSG, CHANNEL_SET_LEN, 0x03, 0x64, 0xFA, 0x00, 0x64, 0x11, 0x67, 0x00 };  // Channel 4 Setup
+        for (auto i = 0; i < channels.size(); i++){
+            if (!channels[i].setup_channel(hComm_, setup_time)){
+                return false;
+            };
+        }
 
-        write_setup_message(hComm_, chan_set1, "Channel 1", setup_time);
-        write_setup_message(hComm_, chan_set2, "Channel 2", setup_time);
-        write_setup_message(hComm_, chan_set3, "Channel 3", setup_time);
-        write_setup_message(hComm_, chan_set4, "Channel 4", setup_time);
+        unsigned char crt_evnt1[] = { DEST_ADR,   SRC_ADR, CREATE_EVENT_MSG, CR_EVT_LEN, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x20, 0x00, 0x00 }; // Create Event 1
 
-        unsigned char crt_sched[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CREATE_SCHEDULE_MSG, 0x03, 0xAA, 0x00, 0x19, 0x00 };                          // Create Schedule
+        if (!write_setup_message(hComm_, crt_evnt1, "Event 1"  , setup_time)) return false;
 
-        write_setup_message(hComm_, crt_sched, "Schedule" , setup_time);
+        unsigned char sync_msg1[] = { DEST_ADR,   SRC_ADR, SYNC_MSG, SYNC_MSG_LEN, 0xAA, 0x00 }; // Sync Message 1
 
-        unsigned char crt_evnt1[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, CREATE_EVENT_MSG, 0x09, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x20, 0x00, 0x00 }; // Create Event 1
+        if (!write_setup_message(hComm_, crt_evnt1, "Sync Msg" , setup_time)) return false;
 
-        write_setup_message(hComm_, crt_evnt1, "Event 1"  , setup_time);
-
-        unsigned char sync_msg1[] = { DESTINATION_ADDRESS, SOURCE_ADDRESS, SYNC_MSG, 0x01, 0xAA, 0x00 }; // Sync Message 1
-
-        write_setup_message(hComm_, crt_evnt1, "Sync Msg" , setup_time);
-
-        print("Setup Complete. \n");
+        LOG(Info) << "Setup Completed successfully.";
 
         return true;
     }
 
-    bool Stimulator::is_enabled(){
-        return open_;
-    }
-
     bool Stimulator::write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_,const mel::Time delay_time_){
 
-        DWORD dwBytesWritten = 0;
+        DWORD dwBytesWritten = 0; // Captures how many bits were written
 
+        // Generate checksum
         setup_message_[(sizeof(setup_message_) / sizeof(*setup_message_)) - 1] = checksum(setup_message_, (sizeof(setup_message_) / sizeof(*setup_message_)));
+
+        // Attempt to send setup message and log whether it was successful or not
         if(!WriteFile(handle_, setup_message_, (sizeof(setup_message_) / sizeof(*setup_message_)),&dwBytesWritten,NULL)){
             LOG(Error) << "Error in " << message_string_ << "Setup.";
             return false;
         }
         else{
-            LOG(Error) << message_string_ << "Setup was successful.";
-            return false;
+            LOG(Info) << message_string_ << "Setup was Successful.";
         }
 
+        // Sleep for delay time to allow the board to process
         sleep(delay_time_);
         return true;
     }
 
+    bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
+        creat_scheduler(hComm, sync_msg, duration, setup_time)
+    }
 
-    
+    bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
+
+        DWORD dwBytesWritten = 0; // Captures how many bits were written
+
+        //                            Destination Source   Msg type             Message length    
+        unsigned char crt_sched[] = { DEST_ADR,   SRC_ADR, CREATE_SCHEDULE_MSG, CREATE_SCHED_LEN, sync_msg, 0x00, 0x19, 0x00 };
+
+        if(!WriteFile(hComm, crt_sched, (sizeof(crt_sched) / sizeof(*crt_sched)),&dwBytesWritten,NULL)){
+            LOG(Error) << "Error in Schedule Setup.";
+            return false;
+        }
+        else{
+            LOG(Info) << "Schedule Setup was Successful.";
+        }
+        
+        scheduler.set_id(return_id);
+        scheduler.enable();
+        
+        sleep(setup_time);
+        return true;
+    }
+
+    bool Stimulator::is_enabled(){
+        return open;
+    }
+
+    std::string Stimulator::get_name(){
+        return name;
+    }
 }
 
 
@@ -313,7 +327,3 @@ namespace fes{
     //     printf("Setup Complete. \n");
 
     // } // Board_Setup_0
-
-    // std::string Stimulator::get_name(){
-    //     return name_;
-    // }
