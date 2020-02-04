@@ -2,7 +2,7 @@
 #include <vector>
 #include <FES/Core/Scheduler.hpp>
 #include <FES/Core/Channel.hpp>
-
+#include <Windows.h>
 
 #pragma once
 
@@ -20,7 +20,7 @@ namespace fes{
 
         std::string get_name();
 
-        bool create_scheduler();
+        bool create_scheduler(const unsigned char sync_msg, unsigned int duration);
 
         bool is_enabled();
 
@@ -29,11 +29,13 @@ namespace fes{
         HANDLE hComm;
         DCB dcbSerialParams = {0};
 
+        Time delay_time = milliseconds(50);
+
         std::string name;
         std::string com_port;
         bool open;
         std::vector<Channel> channels;
-        Scheduler scheduler();
+        Scheduler scheduler;
         Time setup_time = milliseconds(100);
 
         bool open_port(HANDLE& hComm_);
@@ -44,7 +46,7 @@ namespace fes{
         
         bool initialize_board(HANDLE& hComm_);
 
-        bool write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_,const mel::Time delay_time_);
+        bool write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_);
     };
     
     // Message commands for sending serial packets

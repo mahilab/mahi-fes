@@ -1,5 +1,6 @@
 #include <FES/Core/Stimulator.hpp>
 #include <FES/Core/Channel.hpp>
+#include <FES/Core/Event.hpp>
 #include <Utility/Utility.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>
@@ -15,7 +16,8 @@ namespace fes{
         name(name_),
         com_port(com_port_),
         open(false),
-        channels(channels_)
+        channels(channels_),
+        scheduler(unsigned char(0x01))
     {
         enable();
     }
@@ -139,25 +141,25 @@ namespace fes{
         //  1 byte:  AnodeCathode - for 4 bipolar channels (what we have) these are 0x01, 0x23, 0x45, 0x67 respectively
         
         for (auto i = 0; i < channels.size(); i++){
-            if (!channels[i].setup_channel(hComm_, setup_time)){
+            if (!channels[i].setup_channel(hComm_, delay_time)){
                 return false;
             };
         }
 
         unsigned char crt_evnt1[] = { DEST_ADR,   SRC_ADR, CREATE_EVENT_MSG, CR_EVT_LEN, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x20, 0x00, 0x00 }; // Create Event 1
 
-        if (!write_setup_message(hComm_, crt_evnt1, "Event 1"  , setup_time)) return false;
+        if (!write_setup_message(hComm_, crt_evnt1, "Event 1" )) return false;
 
         unsigned char sync_msg1[] = { DEST_ADR,   SRC_ADR, SYNC_MSG, SYNC_MSG_LEN, 0xAA, 0x00 }; // Sync Message 1
 
-        if (!write_setup_message(hComm_, crt_evnt1, "Sync Msg" , setup_time)) return false;
+        if (!write_setup_message(hComm_, crt_evnt1, "Sync Msg")) return false;
 
         LOG(Info) << "Setup Completed successfully.";
 
         return true;
     }
 
-    bool Stimulator::write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_,const mel::Time delay_time_){
+    bool Stimulator::write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_){
 
         DWORD dwBytesWritten = 0; // Captures how many bits were written
 
@@ -174,34 +176,12 @@ namespace fes{
         }
 
         // Sleep for delay time to allow the board to process
-        sleep(delay_time_);
+        sleep(delay_time);
         return true;
     }
 
     bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
-        creat_scheduler(hComm, sync_msg, duration, setup_time)
-    }
-
-    bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
-
-        DWORD dwBytesWritten = 0; // Captures how many bits were written
-
-        //                            Destination Source   Msg type             Message length    
-        unsigned char crt_sched[] = { DEST_ADR,   SRC_ADR, CREATE_SCHEDULE_MSG, CREATE_SCHED_LEN, sync_msg, 0x00, 0x19, 0x00 };
-
-        if(!WriteFile(hComm, crt_sched, (sizeof(crt_sched) / sizeof(*crt_sched)),&dwBytesWritten,NULL)){
-            LOG(Error) << "Error in Schedule Setup.";
-            return false;
-        }
-        else{
-            LOG(Info) << "Schedule Setup was Successful.";
-        }
-        
-        scheduler.set_id(return_id);
-        scheduler.enable();
-        
-        sleep(setup_time);
-        return true;
+        return scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
     }
 
     bool Stimulator::is_enabled(){
