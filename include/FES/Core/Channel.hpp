@@ -1,6 +1,6 @@
 #pragma once
-#include <Windows.h>
 
+#include <Windows.h>
 #include <string>
 
 namespace fes{
@@ -31,5 +31,8 @@ namespace fes{
 
         bool setup_channel(HANDLE serial_handle_, Time delay_time_);
 
+        unsigned char get_channel_num();
+
+        std::string get_name();
     };
 }

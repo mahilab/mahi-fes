@@ -1,10 +1,10 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <FES/Core/Scheduler.hpp>
 #include <FES/Core/Channel.hpp>
 #include <Windows.h>
-
-#pragma once
 
 namespace fes{
     class Stimulator {
@@ -41,8 +41,6 @@ namespace fes{
         bool open_port(HANDLE& hComm_);
 
         bool configure_port(HANDLE& hComm_);
-
-        int checksum(unsigned char myarray[], int m); // checksum is a function that preforms checksums of all of the byte strings used in this code
         
         bool initialize_board(HANDLE& hComm_);
 

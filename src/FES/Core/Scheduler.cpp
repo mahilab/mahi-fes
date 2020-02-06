@@ -6,8 +6,8 @@
 using namespace mel;
 
 namespace fes{
-    Scheduler::Scheduler(unsigned char id_):
-    id(id_)
+    Scheduler::Scheduler():
+    id(0x01)
     {
     }
 
@@ -15,7 +15,9 @@ namespace fes{
         disable();
     }
 
-    bool Scheduler::create_scheduler(HANDLE hComm_, const unsigned char sync_msg, unsigned int duration, Time setup_time){
+    bool Scheduler::create_scheduler(HANDLE& hComm_, const unsigned char sync_char_, unsigned int duration, Time setup_time){
+        sync_char = sync_char_;
+        
         hComm = hComm_;
 
         DWORD dwBytesWritten = 0; // Captures how many bits were written
@@ -23,27 +25,71 @@ namespace fes{
         // convert the input duration (int) into two bytes that we can send over a message
         std::vector<unsigned char> duration_chars = int_to_twobytes(duration);
 
-        //                            Destination Source   Msg type             Message length    sync msg  
-        unsigned char crt_sched[] = { DEST_ADR,   SRC_ADR, CREATE_SCHEDULE_MSG, CREATE_SCHED_LEN, sync_msg, duration_chars[0], duration_chars[1], 0x00 };
+        
+        unsigned char crt_sched[] = { DEST_ADR,            // Destination
+                                      SRC_ADR,             // Source  
+                                      CREATE_SCHEDULE_MSG, // Msg type
+                                      CREATE_SCHED_LEN,    // Message length
+                                      sync_char,           // sync character  
+                                      duration_chars[0],   // schedule duration (byte 1)  
+                                      duration_chars[1],   // schedule duration (byte 2)
+                                      0x00 };              // checksum placeholder
 
-        if(!WriteFile(hComm, crt_sched, (sizeof(crt_sched) / sizeof(*crt_sched)),&dwBytesWritten,NULL)){
-            LOG(Error) << "Error in Scheduler Setup.";
-            return false;
+        if(write_message(hComm, crt_sched, "Creating Scheduler")){
+            enable();
+            sleep(setup_time);
+            return true;
         }
         else{
-            LOG(Info) << "Scheduler Setup was Successful.";
+            return false;
         }
+    }
 
-        enable();
+    bool Scheduler::add_event(Channel channel_, unsigned char event_type){
+
+        if (enabled){
+            for (size_t i = 0; i < events.size(); i++){
+                if (events[i].get_channel() == channel_.get_channel_num()){
+                    LOG(Error) << "Did not add event because an event already existed with that channel.";
+                    return false;
+                }
+            }
+
+            // add 5 us delay so that they don't all occur at the exact same time
+            int delay_time = 5*events.size();           
+
+            // 
+            events.push_back(Event(hComm, id, delay_time, channel_));
+            return true;
+        }
+        else{
+            LOG(Error) << "Scheduler is not yet enabled. ";
+            return false;
+        }
+    }
+
+    bool Scheduler::send_sync_msg(){
+        if (enabled){
+            unsigned char sync_msg1[] = { DEST_ADR,     // Destination
+                                          SRC_ADR,      // Source  
+                                          SYNC_MSG,     // Msg type
+                                          SYNC_MSG_LEN, // Message length
+                                          sync_char,    // sync character
+                                          0x00 };       // Checksum placeholder
+
+            if(write_message(hComm, sync_msg1, "Sending Sync Message")){
+                return true;
+            }
+            else{
+                disable();
+                return false;
+            }
+        }
+        else{
+            LOG(Error) << "Scheduler is not yet enabled";
+        }
+    }
         
-        sleep(setup_time);
-        return true;
-    }
-
-    bool Scheduler::add_event(Channel channel_, unsigned char event_type, int amp, int pw){
-        // do something
-    }
-
     void Scheduler::enable(){
         enabled = true;
     }
@@ -51,16 +97,14 @@ namespace fes{
     void Scheduler::disable(){
         enabled = false;
 
-        DWORD dwBytesWritten = 0; // Captures how many bits were written
+        unsigned char del_sched[] = { DEST_ADR,            // Destination
+                                      SRC_ADR,             // Source  
+                                      DELETE_SCHEDULE_MSG, // Msg type
+                                      DEL_SCHED_LEN,       // Message length
+                                      id,                  // Schedule ID
+                                      0x00 };              // Checksum placeholder
 
-        unsigned char del_sched[] = { DEST_ADR,   SRC_ADR, DELETE_SCHEDULE_MSG, DEL_SCHED_LEN, id, 0x00 };
-
-        if(!WriteFile(hComm, del_sched, (sizeof(del_sched) / sizeof(*del_sched)),&dwBytesWritten,NULL)){
-            LOG(Error) << "Error Closing Schedule.";
-        }
-        else{
-            LOG(Info) << "Schedule Closing was Successful.";
-        }
+        write_message(hComm, del_sched, "Closing Schedule");
     }
 
     unsigned char Scheduler::get_id(){

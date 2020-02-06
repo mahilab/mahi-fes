@@ -21,31 +21,35 @@ namespace fes{
         };
 
     bool Channel::setup_channel(HANDLE serial_handle_, Time delay_time_){
-        DWORD dwBytesWritten = 0; // Captures how many bits were written
+
+        std::vector<unsigned char> ip_delay_bytes = int_to_twobytes(ip_delay);
         
-        if (ip_delay > 256){
-            LOG(Error) << "ip_delay > 256 not yet supported. Please fix in Channel.cpp " << channel_num;
-            return false;
-        }
+        unsigned char setup_message[] = { DEST_ADR,          // Destination
+                                          SRC_ADR,           // Source
+                                          CHANNEL_SETUP_MSG, // Msg type
+                                          CH_SET_LEN,        // Msg len
+                                          channel_num,       // Channel
+                                          max_amp,           // AmpLim
+                                          max_pw,            // PWLim 
+                                          ip_delay_bytes[0], // IP delay (byte 1)
+                                          ip_delay_bytes[1], // IP delay (byte 2)
+                                          ONE_TO_ONE,        // Aspect
+                                          AN_CA_1,           // Anode Cathode
+                                          0x00 };            // Checksum
 
-        //                                Destination Source   Msg type           MSG len     Channel      AmpLim   PWLim         IP delay  Aspect       Anode Cathode  Checksum
-        unsigned char setup_message[] = { DEST_ADR,   SRC_ADR, CHANNEL_SETUP_MSG, CH_SET_LEN, channel_num, max_amp, max_pw, 0x00, ip_delay, ONE_TO_ONE,  AN_CA_1,       0x00 };  // channel 1 setup
-
-        // Generate checksum in last index
-        setup_message[(sizeof(setup_message) / sizeof(*setup_message)) - 1] = checksum(setup_message, (sizeof(setup_message) / sizeof(*setup_message)));
-
-        // Attempt to send setup message and log whether it was successful or not
-        if(!WriteFile(serial_handle_, setup_message, (sizeof(setup_message) / sizeof(*setup_message)),&dwBytesWritten,NULL)){
-            LOG(Error) << "Error setting up Channel " << channel_num;
-            return false;
-        }
-        else{
-            LOG(Info) << "Channel " << channel_num << " Setup was Successful.";
-        }
+        write_message(serial_handle_, setup_message, "Setting Up Channel");
 
         // Sleep for delay time to allow the board to process
         mel::sleep(delay_time_);
         return true;
+    }
+
+    unsigned char Channel::get_channel_num(){
+        return channel_num;
+    }
+
+    std::string Channel::get_name(){
+        return name;
     }
 }
 

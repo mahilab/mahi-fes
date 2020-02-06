@@ -17,7 +17,7 @@ namespace fes{
         com_port(com_port_),
         open(false),
         channels(channels_),
-        scheduler(unsigned char(0x01))
+        scheduler()
     {
         enable();
     }
@@ -145,14 +145,6 @@ namespace fes{
                 return false;
             };
         }
-
-        unsigned char crt_evnt1[] = { DEST_ADR,   SRC_ADR, CREATE_EVENT_MSG, CR_EVT_LEN, 0x01, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x20, 0x00, 0x00 }; // Create Event 1
-
-        if (!write_setup_message(hComm_, crt_evnt1, "Event 1" )) return false;
-
-        unsigned char sync_msg1[] = { DEST_ADR,   SRC_ADR, SYNC_MSG, SYNC_MSG_LEN, 0xAA, 0x00 }; // Sync Message 1
-
-        if (!write_setup_message(hComm_, crt_evnt1, "Sync Msg")) return false;
 
         LOG(Info) << "Setup Completed successfully.";
 
