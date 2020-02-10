@@ -23,20 +23,28 @@ namespace fes{
     }
 
     Stimulator::~Stimulator(){
-        if(is_enabled()){
-            CloseHandle(hComm);
-            LOG(Info) << "Stimulator Closed";
-        }
+        disable();
     }
 
-    // Open serial port ttyUSB0 and store parameters in fd0
+    // Open and configure serial port, and initialize the channels on the board.
     bool Stimulator::enable() {
-        open = open_port(hComm); // open the comport with read/write permissions
-        configure_port(hComm);    // Configure the parameters for serial port ttyUSB0
-        initialize_board(hComm);  // Write stim board setup commands to serial port ttyUSB0
+        open = open_port();        // open the comport with read/write permissions
+        configure_port();   // Configure the parameters for serial port ttyUSB0
+        initialize_board(); // Write stim board setup commands to serial port ttyUSB0
     }
 
-    bool Stimulator::open_port(HANDLE& hComm_){
+    bool Stimulator::disable(){
+        if(is_enabled()){
+            close_stimulator();
+            LOG(Info) << "Stimulator Disabled";
+        }
+        else{
+            LOG(Info) << "Stimulator has not been enabled yet.";
+        }
+        open = false;
+    }
+
+    bool Stimulator::open_port(){
 
         std::string com_port_formatted = "\\\\.\\" + com_port;
 
@@ -44,7 +52,7 @@ namespace fes{
         std::wstring stemp = std::wstring(com_port_formatted.begin(), com_port_formatted.end());
         LPCWSTR com_port_lpcwstr = stemp.c_str();
 
-        hComm_ = CreateFile(com_port_lpcwstr,            // port name
+        hComm = CreateFile(com_port_lpcwstr,            // port name
                            GENERIC_READ | GENERIC_WRITE, // Read/Write
                            0,                            // No Sharing
                            NULL,                         // No Security
@@ -53,7 +61,7 @@ namespace fes{
                            NULL);                        // Null for Comm Devices
 
         // Check if creating the comport was successful or not and log it
-        if (hComm_ == INVALID_HANDLE_VALUE){
+        if (hComm == INVALID_HANDLE_VALUE){
             LOG(Error) << "Failed to open Stimulator" << get_name();
             return false;
         }
@@ -64,13 +72,13 @@ namespace fes{
         return true;
     }
 
-    bool Stimulator::configure_port(HANDLE& hComm_){  // configure_port establishes the settings for each serial port
+    bool Stimulator::configure_port(){  // configure_port establishes the settings for each serial port
 
         // http://bd.eduweb.hhs.nl/micprg/pdf/serial-win.pdf
 
         dcbSerialParams.DCBlength = sizeof(DCB);
 
-        if (!GetCommState(hComm_, &dcbSerialParams)) {
+        if (!GetCommState(hComm, &dcbSerialParams)) {
             LOG(Error) << "Error getting serial port state";
             return false;
         }
@@ -98,7 +106,7 @@ namespace fes{
         // dcbSerialParams.fOutxDsrFlow = FALSE;
 
         // Set communication parameters for the serial port
-        if(!SetCommState(hComm_, &dcbSerialParams)){
+        if(!SetCommState(hComm, &dcbSerialParams)){
             LOG(Error) << "Error setting serial port state";
             return false;
         }
@@ -109,7 +117,7 @@ namespace fes{
         timeouts.ReadTotalTimeoutMultiplier=10;
         timeouts.WriteTotalTimeoutConstant=50;
         timeouts.WriteTotalTimeoutMultiplier=10;
-        if(!SetCommTimeouts(hComm_, &timeouts)){
+        if(!SetCommTimeouts(hComm, &timeouts)){
             LOG(Error) << "Error setting serial port timeouts";
             return false;
         }
@@ -117,7 +125,7 @@ namespace fes{
         return true;
     }
 
-    bool Stimulator::initialize_board(HANDLE& hComm_){
+    bool Stimulator::initialize_board(){
 
         // delay time after sending setup messages of serial comm
         
@@ -140,7 +148,7 @@ namespace fes{
         //  1 byte:  AnodeCathode - for 4 bipolar channels (what we have) these are 0x01, 0x23, 0x45, 0x67 respectively
         
         for (auto i = 0; i < channels.size(); i++){
-            if (!channels[i].setup_channel(hComm_, delay_time)){
+            if (!channels[i].setup_channel(hComm, delay_time)){
                 return false;
             };
         }
@@ -150,25 +158,38 @@ namespace fes{
         return true;
     }
 
-    bool Stimulator::write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_){
+    bool Stimulator::close_stimulator(){
+        unsigned char halt_message[] = {DEST_ADR,          // Destination
+                                        SRC_ADR,           // Source
+                                        HALT_MSG,          // Msg type
+                                        HALT_LEN,          // Msg len
+                                        scheduler.get_id(),// Schedule ID
+                                        0x00};             // Checksum placeholder
 
-        DWORD dwBytesWritten = 0; // Captures how many bits were written
-
-        // Generate checksum
-        setup_message_[(sizeof(setup_message_) / sizeof(*setup_message_)) - 1] = checksum(setup_message_, (sizeof(setup_message_) / sizeof(*setup_message_)));
-
-        // Attempt to send setup message and log whether it was successful or not
-        if(!WriteFile(handle_, setup_message_, (sizeof(setup_message_) / sizeof(*setup_message_)),&dwBytesWritten,NULL)){
-            LOG(Error) << "Error in " << message_string_ << "Setup.";
-            return false;
+        if(write_message(hComm, halt_message, sizeof(halt_message)/sizeof(*halt_message), "Schedule Closing")){
+            CloseHandle(hComm);
+            return true;
         }
         else{
-            LOG(Info) << message_string_ << "Setup was Successful.";
-        }
+            CloseHandle(hComm);
+            return false;
+        }        
+    }
 
-        // Sleep for delay time to allow the board to process
-        sleep(delay_time);
-        return true;
+    bool Stimulator::begin(){
+        return scheduler.send_sync_msg();
+    }
+
+    void Stimulator::write_amp(Channel channel_, unsigned int amp_){
+        scheduler.write_amp(channel_, amp_);
+    }
+
+    void Stimulator::write_pw(Channel channel_, unsigned int pw_){
+        scheduler.write_pw(channel_, pw_);
+    }
+
+    bool Stimulator::update(){
+        return scheduler.update();
     }
 
     bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){

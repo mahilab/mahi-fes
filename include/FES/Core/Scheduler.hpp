@@ -21,11 +21,23 @@ namespace fes{
         ~Scheduler();
 
         bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration, Time setup_time);
-        bool add_event(Channel channel_, unsigned char event_type);
+        
+        bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
+
         bool edit_event(Channel channel_);
+        
         void enable();
+        
         void disable();
+        
         unsigned char get_id();
+
+        void write_amp(Channel channel_, unsigned int amplitude_);
+        
+        void write_pw(Channel channel_, unsigned int pw_);
+
+        bool update();
+        
         bool send_sync_msg();
     };
 }

@@ -35,7 +35,7 @@ namespace fes{
                                       duration_chars[1],   // schedule duration (byte 2)
                                       0x00 };              // checksum placeholder
 
-        if(write_message(hComm, crt_sched, "Creating Scheduler")){
+        if(write_message(hComm, crt_sched, sizeof(crt_sched)/sizeof(*crt_sched), "Creating Scheduler")){
             enable();
             sleep(setup_time);
             return true;
@@ -47,9 +47,11 @@ namespace fes{
 
     bool Scheduler::add_event(Channel channel_, unsigned char event_type){
 
+        int num_events = events.size();
+
         if (enabled){
-            for (size_t i = 0; i < events.size(); i++){
-                if (events[i].get_channel() == channel_.get_channel_num()){
+            for (size_t i = 0; i < num_events; i++){
+                if (events[i].get_channel_num() == channel_.get_channel_num()){
                     LOG(Error) << "Did not add event because an event already existed with that channel.";
                     return false;
                 }
@@ -58,8 +60,9 @@ namespace fes{
             // add 5 us delay so that they don't all occur at the exact same time
             int delay_time = 5*events.size();           
 
-            // 
-            events.push_back(Event(hComm, id, delay_time, channel_));
+            // add event to list of events
+            events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(num_events+1)));
+            
             return true;
         }
         else{
@@ -77,7 +80,7 @@ namespace fes{
                                           sync_char,    // sync character
                                           0x00 };       // Checksum placeholder
 
-            if(write_message(hComm, sync_msg1, "Sending Sync Message")){
+            if(write_message(hComm, sync_msg1, sizeof(sync_msg1)/sizeof(*sync_msg1), "Sending Sync Message")){
                 return true;
             }
             else{
@@ -87,6 +90,7 @@ namespace fes{
         }
         else{
             LOG(Error) << "Scheduler is not yet enabled";
+            return false;
         }
     }
         
@@ -104,7 +108,43 @@ namespace fes{
                                       id,                  // Schedule ID
                                       0x00 };              // Checksum placeholder
 
-        write_message(hComm, del_sched, "Closing Schedule");
+        write_message(hComm, del_sched, sizeof(del_sched)/sizeof(*del_sched), "Closing Schedule");
+    }
+
+    void Scheduler::write_amp(Channel channel_, unsigned int amplitude_){
+        // loop over available events in the scheduler
+        for (auto it = events.begin(); it != events.end(); it++){
+            // if the event is for the correct channel we are looking for, write the amplitude and exit the function
+            if (it->get_channel_num()==channel_.get_channel_num()){
+                it->set_amplitude(amplitude_);
+            }
+        }
+        // if we didnt find the event, something is messed up, so return false
+        LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
+    }
+        
+    void Scheduler::write_pw(Channel channel_, unsigned int pw_){
+        // loop over available events in the scheduler
+        for (auto it = events.begin(); it != events.end(); it++){
+            // if the event is for the correct channel we are looking for, write the amplitude and exit the function
+            if (it->get_channel_num()==channel_.get_channel_num()){
+                return it->set_pulsewidth(pw_);
+            }
+        }
+        // if we didnt find the event, something is messed up, so return false
+        LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
+    }
+
+    bool Scheduler::update(){
+        // loop over available events in the scheduler
+        for (auto it = events.begin(); it != events.end(); it++){
+            // If any channel fails to update, return false after throwing an error
+            if(!it->update()){
+                LOG(Error) << "Channel " << it->get_channel_name() << " failed to update";
+                return false;
+            }
+        }
+        return true;
     }
 
     unsigned char Scheduler::get_id(){

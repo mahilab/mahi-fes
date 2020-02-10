@@ -10,6 +10,10 @@ namespace fes{
     #define CH_2       0x01
     #define CH_3       0x02
     #define CH_4       0x03
+    #define CH_5       0x04
+    #define CH_6       0x05
+    #define CH_7       0x06
+    #define CH_8       0x07
 
     // definition of aspect ratios
     #define ONE_TO_ONE 0x11
@@ -21,18 +25,22 @@ namespace fes{
         std::string name;
         unsigned char aspect;
         unsigned char channel_num;
-        int max_amp;  // maximum amplitude
-        int max_pw;   // maximum pulsewidth
-        int ip_delay; // interphase delay
+        unsigned int max_amp;  // maximum amplitude
+        unsigned int max_pw;   // maximum pulsewidth
+        unsigned int ip_delay; // interphase delay
         unsigned char event_id;
     public:
-        Channel(const std::string& name_, unsigned char channel_num_, int max_amp_, int max_pw_, int ip_delay_ = 100, unsigned char aspect_ = ONE_TO_ONE);
+        Channel(const std::string& name_, unsigned char channel_num_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_ = 100, unsigned char aspect_ = ONE_TO_ONE);
         ~Channel();
 
         bool setup_channel(HANDLE serial_handle_, Time delay_time_);
 
+        unsigned int get_max_amplitude();
+
+        unsigned int get_max_pulse_width();
+
         unsigned char get_channel_num();
 
-        std::string get_name();
+        std::string get_channel_name();
     };
 }

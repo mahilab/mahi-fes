@@ -16,6 +16,8 @@ namespace fes{
 
         bool enable();
 
+        bool disable();
+
         void set_stim(const int pulse_width_);
 
         std::string get_name();
@@ -23,6 +25,16 @@ namespace fes{
         bool create_scheduler(const unsigned char sync_msg, unsigned int duration);
 
         bool is_enabled();
+
+        void write_amp(Channel channel_, unsigned int amplitude_);
+        
+        void write_pw(Channel channel_, unsigned int pw_);
+
+        bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
+
+        bool begin();
+
+        bool update();
 
     private:
         // variables for serial communication
@@ -38,13 +50,13 @@ namespace fes{
         Scheduler scheduler;
         Time setup_time = milliseconds(100);
 
-        bool open_port(HANDLE& hComm_);
+        bool open_port();
 
-        bool configure_port(HANDLE& hComm_);
+        bool configure_port();
         
-        bool initialize_board(HANDLE& hComm_);
-
-        bool write_setup_message(HANDLE& handle_, unsigned char setup_message_[], std::string message_string_);
+        bool initialize_board();
+        
+        bool close_stimulator();
     };
     
     // Message commands for sending serial packets
@@ -76,6 +88,7 @@ namespace fes{
     #define CREATE_SCHED_LEN            0x03
     #define CH_SET_LEN                  0x07
     #define CR_EVT_LEN                  0x09
+    #define HALT_LEN                    0x01
 
     // Anode Cathode pairs for channels 1-4
     #define AN_CA_1                     0x01

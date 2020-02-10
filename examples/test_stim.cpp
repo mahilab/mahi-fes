@@ -36,20 +36,23 @@ int main() {
     //                    sync  dur
     stim.create_scheduler(0xAA, 25);
 
-    //                       channel event type  amp pw
-    stim.scheduler.add_event(bicep,   STIM_EVENT);
-    stim.scheduler.add_event(tricep,  STIM_EVENT);
-    stim.scheduler.add_event(forearm, STIM_EVENT);
-    stim.scheduler.add_event(wrist,   STIM_EVENT);
+    //             channel
+    stim.add_event(bicep);
+    stim.add_event(tricep);
+    stim.add_event(forearm);
+    stim.add_event(wrist);
 
     Timer timer(milliseconds(1), Timer::WaitMode::Hybrid);
     timer.set_acceptable_miss_rate(0.05);
 
+    stim.begin();
     while(!stop){
-        stim.scheduler.update_pw(bicep,2);
-        stim.scheduler.update_pw(tricep,2);
-        stim.scheduler.update_pw(forearm,2);
-        stim.scheduler.update_pw(wrist,2);
+        stim.write_pw(bicep,0);
+        stim.write_pw(tricep,0);
+        stim.write_pw(forearm,0);
+        stim.write_pw(wrist,0);
+
+        stim.update();
     }
 
     stim.disable();

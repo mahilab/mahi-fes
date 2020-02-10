@@ -7,5 +7,5 @@ namespace fes{
 
     std::vector<unsigned char> int_to_twobytes(int input_int);
 
-    bool write_message(HANDLE hComm_, unsigned char message_[], const std::string& activity);
+    bool write_message(HANDLE hComm_, unsigned char* message_, const int message_size_, const std::string& activity);
 }
