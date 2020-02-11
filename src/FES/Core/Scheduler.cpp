@@ -35,11 +35,28 @@ namespace fes{
                                       0x00 };              // checksum placeholder
 
         if(write_message(hComm, crt_sched, sizeof(crt_sched)/sizeof(*crt_sched), "Creating Scheduler")){
-            enable();
+            enabled = true;
             sleep(setup_time);
             return true;
         }
         else{
+            return false;
+        }
+    }
+
+    bool Scheduler::halt_scheduler(){
+        if(is_enabled()){
+            unsigned char halt_message[] = {DEST_ADR, // Destination
+                                            SRC_ADR,  // Source
+                                            HALT_MSG, // Msg type
+                                            HALT_LEN, // Msg len
+                                            id,       // Schedule ID
+                                            0x00};    // Checksum placeholder
+
+            return write_message(hComm, halt_message, sizeof(halt_message)/sizeof(*halt_message), "Schedule Closing");
+        }
+        else{
+            LOG(Error) << "Scheduler was not enabled. Nothing to disable";
             return false;
         }
     }
@@ -49,7 +66,7 @@ namespace fes{
         auto num_events = events.size();
 
         if (enabled){
-            for (size_t i = 0; i < num_events; i++){
+            for (auto i = 0; i < num_events; i++){
                 if (events[i].get_channel_num() == channel_.get_channel_num()){
                     LOG(Error) << "Did not add event because an event already existed with that channel.";
                     return false;
@@ -60,7 +77,11 @@ namespace fes{
             auto delay_time = 5*events.size();           
 
             // add event to list of events
-            events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(int(num_events)+1)));
+            events.push_back(Event(hComm, 
+                                   id, 
+                                   delay_time, 
+                                   channel_, 
+                                   (unsigned char)(num_events+1)));
             
             return true;
         }
@@ -92,10 +113,6 @@ namespace fes{
             return false;
         }
     }
-        
-    void Scheduler::enable(){
-        enabled = true;
-    }
 
     void Scheduler::disable(){
         enabled = false;
@@ -124,10 +141,10 @@ namespace fes{
         
     void Scheduler::write_pw(Channel channel_, unsigned int pw_){
         // loop over available events in the scheduler
-        for (auto it = events.begin(); it != events.end(); it++){
-            // if the event is for the correct channel we are looking for, write the amplitude and exit the function
-            if (it->get_channel_num()==channel_.get_channel_num()){
-                return it->set_pulsewidth(pw_);
+        for (auto event = events.begin(); event != events.end(); event++){
+            // if the event is for the correct channel we are looking for, wrevente the ampleventude and exevent the function
+            if (event->get_channel_num()==channel_.get_channel_num()){
+                return event->set_pulsewidth(pw_);
             }
         }
         // if we didnt find the event, something is messed up, so return false
@@ -136,10 +153,10 @@ namespace fes{
 
     bool Scheduler::update(){
         // loop over available events in the scheduler
-        for (auto it = events.begin(); it != events.end(); it++){
+        for (auto event = events.begin(); event != events.end(); event++){
             // If any channel fails to update, return false after throwing an error
-            if(!it->update()){
-                LOG(Error) << "Channel " << it->get_channel_name() << " failed to update";
+            if(!event->update()){
+                LOG(Error) << "Channel " << event->get_channel_name() << " failed to update";
                 return false;
             }
         }

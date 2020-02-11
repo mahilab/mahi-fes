@@ -21,7 +21,7 @@ namespace fes{
         enabled(false),
         open(false),
         channels(channels_),
-        stim_scheduler()
+        scheduler()
     {
         enable();
     }
@@ -178,17 +178,12 @@ namespace fes{
         return true;
     }
 
+    bool Stimulator::halt_scheduler(){
+        return scheduler.halt_scheduler();
+    }
+
     bool Stimulator::close_stimulator(){
         bool successful = false;
-
-        unsigned char halt_message[] = {DEST_ADR,          // Destination
-                                        SRC_ADR,           // Source
-                                        HALT_MSG,          // Msg type
-                                        HALT_LEN,          // Msg len
-                                        stim_scheduler.get_id(),// Schedule ID
-                                        0x00};             // Checksum placeholder
-
-        successful = write_message(hComm, halt_message, sizeof(halt_message)/sizeof(*halt_message), "Schedule Closing");
 
         if (successful){
             enabled = false;
@@ -203,7 +198,7 @@ namespace fes{
     bool Stimulator::begin(){
         if (is_open()){
             enabled = true;
-            return stim_scheduler.send_sync_msg();
+            return scheduler.send_sync_msg();
         }
         else{
             LOG(Error) << "Stimulator has not yet been opened. Not starting the stimulator";
@@ -213,7 +208,7 @@ namespace fes{
 
     void Stimulator::write_amp(Channel channel_, unsigned int amp_){
         if (is_enabled()){
-            stim_scheduler.write_amp(channel_, amp_);
+            scheduler.write_amp(channel_, amp_);
         }
         else{
             LOG(Error) << "Stimulator has not yet been enabled. Not writing amplitude";
@@ -222,7 +217,7 @@ namespace fes{
 
     void Stimulator::write_pw(Channel channel_, unsigned int pw_){
         if (is_enabled()){
-            stim_scheduler.write_pw(channel_, pw_);
+            scheduler.write_pw(channel_, pw_);
         }
         else{
             LOG(Error) << "Stimulator has not yet been enabled. Not writing pulsewidth";
@@ -231,7 +226,7 @@ namespace fes{
 
     bool Stimulator::update(){
         if (is_enabled()){
-            return stim_scheduler.update();
+            return scheduler.update();
         }
         else{
             LOG(Error) << "Stimulator has not yet been enabled. Not updating";
@@ -241,7 +236,7 @@ namespace fes{
 
     bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
         if (is_enabled()){
-            return stim_scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
+            return scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
         }
         else{
             LOG(Error) << "Stimulator has not yet been enabled. Not creating scheduler";
@@ -251,7 +246,23 @@ namespace fes{
 
     bool Stimulator::add_event(Channel channel_, unsigned char event_type){
         if (is_enabled()){
-            return stim_scheduler.add_event(channel_, event_type);
+            return scheduler.add_event(channel_, event_type);
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been enabled. Not adding event to scheduler";
+            return false;
+        }
+    }
+
+    bool Stimulator::add_events(std::vector<Channel> channels_, unsigned char event_type){
+        if (is_enabled()){
+            for (size_t i = 0; i < channels_.size(); i++){
+                // If any channel fails to add, return false after throwing an error
+                if(!scheduler.add_event(channels_[i], event_type)){
+                    return false;
+                };
+            }
+            return true;
         }
         else{
             LOG(Error) << "Stimulator has not yet been enabled. Not adding event to scheduler";

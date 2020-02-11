@@ -35,9 +35,13 @@ namespace fes{
 
         bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
 
+        bool add_events(std::vector<Channel> channels_, unsigned char event_type = STIM_EVENT);
+
         bool begin();
 
         bool update();
+
+        bool halt_scheduler();
 
     private:
         // variables for serial communication
@@ -51,7 +55,7 @@ namespace fes{
         bool enabled;
         bool open;
         std::vector<Channel> channels;
-        Scheduler stim_scheduler;
+        Scheduler scheduler;
         mel::Time setup_time = mel::milliseconds(100);
 
         bool open_port();

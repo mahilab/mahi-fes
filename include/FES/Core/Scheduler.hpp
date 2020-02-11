@@ -38,6 +38,8 @@ namespace fes{
         
         void write_pw(Channel channel_, unsigned int pw_);
 
+        bool halt_scheduler();
+
         bool update();
         
         bool send_sync_msg();

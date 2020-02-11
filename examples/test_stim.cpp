@@ -23,39 +23,46 @@ int main() {
     std::vector<Channel> channels;
 
     Channel bicep  ("bicep",   CH_1, 100, 250);
-    Channel tricep ("tricep",  CH_2, 100, 250);
-    Channel forearm("forearm", CH_3, 100, 250);
-    Channel wrist  ("wrist",   CH_4, 100, 250);
     channels.push_back(bicep);
-    channels.push_back(tricep);
-    channels.push_back(forearm);
-    channels.push_back(wrist);
 
-    // Create stim board
+    Channel tricep ("tricep",  CH_2, 100, 250);
+    channels.push_back(tricep);
+
+    Channel forearm("forearm", CH_3, 100, 250);
+    channels.push_back(forearm);
+    
+    Channel wrist  ("wrist",   CH_4, 100, 250);
+    channels.push_back(wrist);
+    
+    // Create stim board with a name, comport, and channels to add
     Stimulator stim("UECU Board", "COM5", channels);
 
-    //                    sync  dur
+    // Initialize scheduler with the sync character and duration of scheduler in ms
     stim.create_scheduler(0xAA, 25);
 
-    //             channel
-    stim.add_event(bicep);
-    stim.add_event(tricep);
-    stim.add_event(forearm);
-    stim.add_event(wrist);
+    // Input which events will be added to the scheduler for updates
+    stim.add_events(channels);
 
+    // Initialize a timer for how often to update
     Timer timer(milliseconds(1), Timer::WaitMode::Hybrid);
     timer.set_acceptable_miss_rate(0.05);
 
+    // start sending stimulation to the board
     stim.begin();
+
     while(!stop){
+
+        // update the pulsewidth of each of the stimulation events
         stim.write_pw(bicep,0);
         stim.write_pw(tricep,0);
         stim.write_pw(forearm,0);
         stim.write_pw(wrist,0);
 
+        // command the stimulation patterns to be sent to the stim board
         stim.update();
     }
 
+    // disable events, schedulers, boards, etc
     stim.disable();
 
 
