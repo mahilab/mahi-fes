@@ -1,19 +1,20 @@
 #pragma once
 
 #include <Windows.h>
+#include <MEL/Core/Time.hpp>
 #include <string>
 
 namespace fes{
 
-    // definition of channel 1-4
-    #define CH_1       0x00
-    #define CH_2       0x01
-    #define CH_3       0x02
-    #define CH_4       0x03
-    #define CH_5       0x04
-    #define CH_6       0x05
-    #define CH_7       0x06
-    #define CH_8       0x07
+    // definition of channels 1-8
+    #define CH_1 0x00
+    #define CH_2 0x01
+    #define CH_3 0x02
+    #define CH_4 0x03
+    #define CH_5 0x04
+    #define CH_6 0x05
+    #define CH_7 0x06
+    #define CH_8 0x07
 
     // definition of aspect ratios
     #define ONE_TO_ONE 0x11
@@ -30,10 +31,12 @@ namespace fes{
         unsigned int ip_delay; // interphase delay
         unsigned char event_id;
     public:
+
         Channel(const std::string& name_, unsigned char channel_num_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_ = 100, unsigned char aspect_ = ONE_TO_ONE);
+        
         ~Channel();
 
-        bool setup_channel(HANDLE serial_handle_, Time delay_time_);
+        bool setup_channel(HANDLE serial_handle_, mel::Time delay_time_);
 
         unsigned int get_max_amplitude();
 

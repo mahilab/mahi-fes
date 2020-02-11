@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FES/Core/Stimulator.hpp"
+// #include "FES/Core/Stimulator.hpp"
 #include "FES/Core/Channel.hpp"
 
 namespace fes{
@@ -8,6 +8,7 @@ namespace fes{
     private:
         #define DELETE_EVENT_LEN          0x01
         #define CHANGE_EVENT_PARAMS_LEN   0x04
+        #define STIM_EVENT                0x03
         
         HANDLE hComm;
         unsigned char schedule_id;
@@ -23,7 +24,7 @@ namespace fes{
         unsigned int max_pulse_width;
     public:
 
-        #define STIM_EVENT 0x03
+        // Event();
 
         Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, int pulse_width_ = 0, int amplitude_ = 0, unsigned char event_type_ = STIM_EVENT, unsigned char priority_ = 0x00, unsigned char zone_ = 0x00);
         ~Event();

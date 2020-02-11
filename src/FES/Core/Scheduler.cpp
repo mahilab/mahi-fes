@@ -1,7 +1,6 @@
-#include <Core/Scheduler.hpp>
-#include <Core/Stimulator.hpp>
+#include <FES/Core/Scheduler.hpp>
 #include <MEL/Logging/Log.hpp>
-#include <Utility/Utility.hpp>
+#include <FES/Utility/Utility.hpp>
 
 using namespace mel;
 
@@ -47,7 +46,7 @@ namespace fes{
 
     bool Scheduler::add_event(Channel channel_, unsigned char event_type){
 
-        int num_events = events.size();
+        auto num_events = events.size();
 
         if (enabled){
             for (size_t i = 0; i < num_events; i++){
@@ -58,10 +57,10 @@ namespace fes{
             }
 
             // add 5 us delay so that they don't all occur at the exact same time
-            int delay_time = 5*events.size();           
+            auto delay_time = 5*events.size();           
 
             // add event to list of events
-            events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(num_events+1)));
+            events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(int(num_events)+1)));
             
             return true;
         }
@@ -149,5 +148,9 @@ namespace fes{
 
     unsigned char Scheduler::get_id(){
         return id;
+    }
+
+    bool Scheduler::is_enabled(){
+        return enabled;
     }
 }

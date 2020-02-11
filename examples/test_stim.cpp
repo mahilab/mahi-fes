@@ -1,3 +1,4 @@
+#include <FES/Utility/Utility.hpp>
 #include <FES/Core/Stimulator.hpp>
 #include <FES/Core/Muscle.hpp>
 #include <MEL/Core/Console.hpp>

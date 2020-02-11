@@ -2,6 +2,7 @@
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "cmake.buildDirectory": "${workspaceRoot}/build-${buildKit}-${variant:buildType}",
     "files.associations": {
+        "*.in": "cmake",
         "vector": "cpp",
         "algorithm": "cpp",
         "array": "cpp",
@@ -70,6 +71,7 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "codecvt": "cpp"
     }
 }

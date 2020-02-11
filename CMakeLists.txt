@@ -11,12 +11,20 @@ include_directories("include")
 
 # create an app from your source files
 add_executable(test_stim
-    "include/Stimulator.hpp"
-    "src/Stimulator.cpp"
-    "examples/test_stim.cpp"
+    "examples/test_stim.cpp"    
+    "include/FES/Core/Stimulator.hpp"
+    "src/FES/Core/Stimulator.cpp"
+    "include/FES/Core/Channel.hpp"
+    "src/FES/Core/Channel.cpp"
+    "include/FES/Core/Event.hpp"
+    "src/FES/Core/Event.cpp"
+    "include/FES/Core/Scheduler.hpp"
+    "src/FES/Core/Scheduler.cpp"
+    "include/FES/Utility/Utility.hpp"
+    "src/FES/Utility/Utility.cpp"
 )
 
 # link your app to MEL libaries
-target_link_libraries(my_app 
+target_link_libraries(test_stim 
     MEL::MEL 
 )

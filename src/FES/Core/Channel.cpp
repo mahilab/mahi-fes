@@ -1,5 +1,5 @@
 #include <FES/Core/Channel.hpp>
-#include <FES/Core/Stimulator.hpp>
+// #include <FES/Core/Stimulator.hpp>
 #include <FES/Utility/Utility.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>
@@ -9,6 +9,7 @@
 using namespace mel;
 
 namespace fes{
+
     Channel::Channel(const std::string& name_, unsigned char channel_num_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_, unsigned char aspect_):
         name(name_),
         channel_num(channel_num_),
@@ -19,6 +20,10 @@ namespace fes{
         {
             
         };
+    
+    Channel::~Channel(){
+
+    }
 
     bool Channel::setup_channel(HANDLE serial_handle_, Time delay_time_){
 

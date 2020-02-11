@@ -1,13 +1,16 @@
 #include <FES/Core/Stimulator.hpp>
 #include <FES/Core/Channel.hpp>
 #include <FES/Core/Event.hpp>
-#include <Utility/Utility.hpp>
+#include <FES/Utility/Utility.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Utility/System.hpp>
 #include <Windows.h>
 #include <tchar.h>
+#include <string>
+#include <codecvt>
+#include <locale>
 
 using namespace mel;
 
@@ -15,9 +18,10 @@ namespace fes{
     Stimulator::Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_):
         name(name_),
         com_port(com_port_),
+        enabled(false),
         open(false),
         channels(channels_),
-        scheduler()
+        stim_scheduler()
     {
         enable();
     }
@@ -28,12 +32,26 @@ namespace fes{
 
     // Open and configure serial port, and initialize the channels on the board.
     bool Stimulator::enable() {
-        open = open_port();        // open the comport with read/write permissions
-        configure_port();   // Configure the parameters for serial port ttyUSB0
-        initialize_board(); // Write stim board setup commands to serial port ttyUSB0
+        // open the comport with read/write permissions
+        if(!open_port()){
+            enabled = false;
+            return enabled;
+        }
+        // Configure the parameters for serial port ttyUSB0
+        if(!configure_port()){
+            enabled = false;
+            return enabled;
+        }   
+        // Write stim board setup commands to serial port ttyUSB0
+        if(!initialize_board()){
+            enabled = false;
+            return enabled;
+        } 
+        enabled = true;
+        return enabled;
     }
 
-    bool Stimulator::disable(){
+    void Stimulator::disable(){
         if(is_enabled()){
             close_stimulator();
             LOG(Info) << "Stimulator Disabled";
@@ -41,24 +59,26 @@ namespace fes{
         else{
             LOG(Info) << "Stimulator has not been enabled yet.";
         }
-        open = false;
+        enabled = false;
     }
 
     bool Stimulator::open_port(){
 
-        std::string com_port_formatted = "\\\\.\\" + com_port;
-
         // the comport must be formatted as an LPCWSTR, so we need to get it into that form from a std::string
-        std::wstring stemp = std::wstring(com_port_formatted.begin(), com_port_formatted.end());
-        LPCWSTR com_port_lpcwstr = stemp.c_str();
+        std::wstring com_prefix = L"\\\\.\\";
+        std::wstring com_suffix = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(com_port);
+        std::wstring comID = com_prefix + com_suffix;
+        
+        // std::wstring stemp = std::wstring(com_port_formatted.begin(), com_port_formatted.end());
+        // LPCWSTR com_port_lpcwstr = stemp.c_str();
 
-        hComm = CreateFile(com_port_lpcwstr,            // port name
-                           GENERIC_READ | GENERIC_WRITE, // Read/Write
-                           0,                            // No Sharing
-                           NULL,                         // No Security
-                           OPEN_EXISTING,                // Open existing port only
-                           0,                            // Non Overlapped I/O
-                           NULL);                        // Null for Comm Devices
+        hComm = CreateFileW(comID.c_str(),                // port name
+                            GENERIC_READ | GENERIC_WRITE, // Read/Write
+                            0,                            // No Sharing
+                            NULL,                         // No Security
+                            OPEN_EXISTING,                // Open existing port only
+                            0,                            // Non Overlapped I/O
+                            NULL);                        // Null for Comm Devices
 
         // Check if creating the comport was successful or not and log it
         if (hComm == INVALID_HANDLE_VALUE){
@@ -159,45 +179,92 @@ namespace fes{
     }
 
     bool Stimulator::close_stimulator(){
+        bool successful = false;
+
         unsigned char halt_message[] = {DEST_ADR,          // Destination
                                         SRC_ADR,           // Source
                                         HALT_MSG,          // Msg type
                                         HALT_LEN,          // Msg len
-                                        scheduler.get_id(),// Schedule ID
+                                        stim_scheduler.get_id(),// Schedule ID
                                         0x00};             // Checksum placeholder
 
-        if(write_message(hComm, halt_message, sizeof(halt_message)/sizeof(*halt_message), "Schedule Closing")){
-            CloseHandle(hComm);
-            return true;
+        successful = write_message(hComm, halt_message, sizeof(halt_message)/sizeof(*halt_message), "Schedule Closing");
+
+        if (successful){
+            enabled = false;
         }
-        else{
-            CloseHandle(hComm);
-            return false;
-        }        
+
+        CloseHandle(hComm);     
+        open = false;
+
+        return successful;
     }
 
     bool Stimulator::begin(){
-        return scheduler.send_sync_msg();
+        if (is_open()){
+            enabled = true;
+            return stim_scheduler.send_sync_msg();
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been opened. Not starting the stimulator";
+            return false;
+        }
     }
 
     void Stimulator::write_amp(Channel channel_, unsigned int amp_){
-        scheduler.write_amp(channel_, amp_);
+        if (is_enabled()){
+            stim_scheduler.write_amp(channel_, amp_);
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been enabled. Not writing amplitude";
+        }
     }
 
     void Stimulator::write_pw(Channel channel_, unsigned int pw_){
-        scheduler.write_pw(channel_, pw_);
+        if (is_enabled()){
+            stim_scheduler.write_pw(channel_, pw_);
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been enabled. Not writing pulsewidth";
+        }
     }
 
     bool Stimulator::update(){
-        return scheduler.update();
+        if (is_enabled()){
+            return stim_scheduler.update();
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been enabled. Not updating";
+            return false;
+        }
     }
 
     bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
-        return scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
+        if (is_enabled()){
+            return stim_scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been enabled. Not creating scheduler";
+            return false;
+        }
+    }
+
+    bool Stimulator::add_event(Channel channel_, unsigned char event_type){
+        if (is_enabled()){
+            return stim_scheduler.add_event(channel_, event_type);
+        }
+        else{
+            LOG(Error) << "Stimulator has not yet been enabled. Not adding event to scheduler";
+            return false;
+        }
+    }
+
+    bool Stimulator::is_open(){
+        return open;
     }
 
     bool Stimulator::is_enabled(){
-        return open;
+        return enabled;
     }
 
     std::string Stimulator::get_name(){

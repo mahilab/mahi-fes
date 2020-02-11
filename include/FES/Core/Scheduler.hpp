@@ -3,6 +3,7 @@
 #include <vector>
 #include <FES/Core/Channel.hpp>
 #include <FES/Core/Event.hpp>
+#include <MEL/Core/Time.hpp>
 
 namespace fes{
     class Scheduler{
@@ -15,12 +16,13 @@ namespace fes{
         unsigned char sync_char;
 
         #define DEL_SCHED_LEN 0x01
+        #define STIM_EVENT    0x03
 
     public:
         Scheduler();
         ~Scheduler();
 
-        bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration, Time setup_time);
+        bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration, mel::Time setup_time);
         
         bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
 
@@ -39,5 +41,7 @@ namespace fes{
         bool update();
         
         bool send_sync_msg();
+
+        bool is_enabled();
     };
 }

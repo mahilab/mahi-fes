@@ -1,5 +1,4 @@
 #include "Windows.h"
-#include <Core/Stimulator.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <vector>
 
