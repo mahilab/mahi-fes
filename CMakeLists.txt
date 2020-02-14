@@ -6,6 +6,8 @@ project(FES VERSION 0.1.0 LANGUAGES CXX)
 # find MEL::MEL and all available MEL::xxx modules
 find_package(MEL REQUIRED)
 
+add_subdirectory("mahi-gui")
+
 # add your include directories
 include_directories("include")
 
@@ -23,8 +25,18 @@ add_executable(test_stim
     "include/FES/Utility/Utility.hpp"
     "src/FES/Utility/Utility.cpp"
 )
-
 # link your app to MEL libaries
 target_link_libraries(test_stim 
     MEL::MEL 
 )
+
+# create an app from your source files
+add_executable(ex_visualization
+    "examples/ex_visualization.cpp"
+)
+# link your app to MEL libaries
+target_link_libraries(ex_visualization 
+    mahi::gui 
+)
+
+

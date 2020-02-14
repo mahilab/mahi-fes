@@ -1,0 +1,3 @@
+[submodule "mahi-gui"]
+	path = mahi-gui
+	url = https://github.com/mahilab/mahi-gui

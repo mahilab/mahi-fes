@@ -2,6 +2,7 @@
 
 #include "Windows.h"
 #include <vector>
+#include <string>
 
 namespace fes{
     int checksum(unsigned char myarray[], int array_size);
