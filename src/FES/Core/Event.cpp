@@ -76,6 +76,10 @@ namespace fes{
         }
     }
 
+    int Event::get_amplitude(){
+        return amplitude;
+    }
+
     void Event::set_pulsewidth(unsigned int pulsewidth_){
         if (pulsewidth_ > max_pulse_width){
             pulse_width = max_pulse_width;
@@ -88,6 +92,10 @@ namespace fes{
         else{
             pulse_width = pulsewidth_;
         }
+    }
+
+    int Event::get_pulsewidth(){
+        return pulse_width;
     }
 
     bool Event::update(){

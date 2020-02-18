@@ -28,21 +28,25 @@ namespace fes{
 
         Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, int pulse_width_ = 0, int amplitude_ = 0, unsigned char event_type_ = STIM_EVENT, unsigned char priority_ = 0x00, unsigned char zone_ = 0x00);
         ~Event();
-        bool Event::create_event();
+        bool create_event();
 
         unsigned char get_channel_num();
         
         std::string get_channel_name();
 
-        bool Event::edit_event();
+        bool edit_event();
 
-        bool Event::delete_event();
+        bool delete_event();
 
-        bool Event::update();
+        bool update();
 
-        void Event::set_amplitude(unsigned int amplitude_);
+        void set_amplitude(unsigned int amplitude_);
 
-        void Event::set_pulsewidth(unsigned int pulse_width_);
+        void set_pulsewidth(unsigned int pulse_width_);
+
+        int get_amplitude();
+
+        int get_pulsewidth();
     };
 }
 

@@ -46,13 +46,13 @@ namespace fes{
         // write the file iff possible
         if(!WriteFile(hComm_, message_, message_size_, &dwBytesWritten,NULL)){
             if (log_message) {
-                LOG(Error) << "Error Closing Schedule.";
+                LOG(Error) << "Error " << activity;
             }
             return false;
         }
         else{
             if (log_message) {
-                LOG(Info) << "Schedule Closing was Successful.";
+                LOG(Info) << activity << " was Successful.";
             }
             return true;
         }

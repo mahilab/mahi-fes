@@ -138,6 +138,19 @@ namespace fes{
         // if we didnt find the event, something is messed up, so return false
         LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
     }
+
+    int Scheduler::get_amp(Channel channel_){
+        // loop over available events in the scheduler
+        for (auto event = events.begin(); event != events.end(); event++){
+            // if the event is for the correct channel we are looking for, wrevente the ampleventude and exevent the function
+            if (event->get_channel_num()==channel_.get_channel_num()){
+                return event->get_amplitude();
+            }
+        }
+        // if we didnt find the event, something is messed up, so return 0
+        LOG(Error) << "Did not find the correct event to pull from. Returning 0.";
+        return 0;
+    }
         
     void Scheduler::write_pw(Channel channel_, unsigned int pw_){
         // loop over available events in the scheduler
@@ -151,6 +164,19 @@ namespace fes{
         LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
     }
 
+    int Scheduler::get_pw(Channel channel_){
+        // loop over available events in the scheduler
+        for (auto event = events.begin(); event != events.end(); event++){
+            // if the event is for the correct channel we are looking for, wrevente the ampleventude and exevent the function
+            if (event->get_channel_num()==channel_.get_channel_num()){
+                return event->get_pulsewidth();
+            }
+        }
+        // if we didnt find the event, something is messed up, so return 0
+        LOG(Error) << "Did not find the correct event to pull from. Returning 0.";
+        return 0;
+    }
+
     bool Scheduler::update(){
         // loop over available events in the scheduler
         for (auto event = events.begin(); event != events.end(); event++){
@@ -161,6 +187,10 @@ namespace fes{
             }
         }
         return true;
+    }
+
+    size_t Scheduler::get_num_events(){
+        return events.size();
     }
 
     unsigned char Scheduler::get_id(){

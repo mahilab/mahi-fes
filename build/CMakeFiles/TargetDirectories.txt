@@ -1,3 +1,0 @@
-C:/Git/FES/build/CMakeFiles/test_stim.dir
-C:/Git/FES/build/CMakeFiles/ALL_BUILD.dir
-C:/Git/FES/build/CMakeFiles/ZERO_CHECK.dir

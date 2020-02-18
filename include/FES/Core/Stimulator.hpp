@@ -11,7 +11,7 @@ namespace fes{
     class Stimulator {
     public:
 
-        Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_);
+        Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_);
         
         ~Stimulator();
 
@@ -42,6 +42,12 @@ namespace fes{
         bool update();
 
         bool halt_scheduler();
+
+        size_t num_events;
+        std::vector<int> amplitudes;
+        std::vector<int> pulsewidths;
+        std::vector<int> max_amplitudes;
+        std::vector<int> max_pulsewidths;
 
     private:
         // variables for serial communication

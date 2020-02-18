@@ -42,6 +42,10 @@ namespace fes{
 
         unsigned int get_max_pulse_width();
 
+        void set_max_amplitude(unsigned int);
+
+        void set_max_pulse_width(unsigned int);
+
         unsigned char get_channel_num();
 
         std::string get_channel_name();

@@ -15,14 +15,24 @@
 using namespace mel;
 
 namespace fes{
-    Stimulator::Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_):
+    Stimulator::Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_):
         name(name_),
         com_port(com_port_),
         enabled(false),
         open(false),
         channels(channels_),
-        scheduler()
+        scheduler(),
+        num_events(size_),
+        amplitudes(num_events,0),
+        pulsewidths(num_events,0),
+        max_amplitudes(num_events,0),
+        max_pulsewidths(num_events,0)
     {
+        print(num_events);
+        for (auto i = 0; i < num_events; i++){
+            max_amplitudes[i] = channels[i].get_max_amplitude();
+            max_pulsewidths[i] = channels[i].get_max_pulse_width();
+        }        
         enable();
     }
 
@@ -226,6 +236,16 @@ namespace fes{
 
     bool Stimulator::update(){
         if (is_enabled()){
+            amplitudes.resize(num_events);
+            pulsewidths.resize(num_events);
+            max_amplitudes.resize(num_events);
+            max_pulsewidths.resize(num_events);
+            for (size_t i = 0; i < scheduler.get_num_events(); i++){
+                amplitudes[i]  = scheduler.get_amp(channels[i]);
+                pulsewidths[i] = scheduler.get_pw(channels[i]);
+                max_amplitudes[i] = channels[i].get_max_amplitude();
+                max_pulsewidths[i] = channels[i].get_max_pulse_width();
+            }
             return scheduler.update();
         }
         else{

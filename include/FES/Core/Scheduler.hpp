@@ -35,8 +35,14 @@ namespace fes{
         unsigned char get_id();
 
         void write_amp(Channel channel_, unsigned int amplitude_);
+
+        int get_amp(Channel channel_);
         
         void write_pw(Channel channel_, unsigned int pw_);
+
+        int get_pw(Channel channel_);
+
+        size_t get_num_events();
 
         bool halt_scheduler();
 

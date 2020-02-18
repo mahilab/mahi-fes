@@ -72,6 +72,15 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "bitset": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "clocale": "cpp",
+        "concepts": "cpp",
+        "deque": "cpp",
+        "resumable": "cpp",
+        "filesystem": "cpp",
+        "forward_list": "cpp",
+        "mutex": "cpp",
+        "numeric": "cpp",
+        "variant": "cpp"
     }
 }

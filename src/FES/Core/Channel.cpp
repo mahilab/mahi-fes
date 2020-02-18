@@ -60,6 +60,14 @@ namespace fes{
         return max_pw;
     }
 
+    void Channel::set_max_amplitude(unsigned int max_amp_){
+        max_amp = max_amp_;
+    }
+
+    void Channel::set_max_pulse_width(unsigned int max_pw_){
+        max_pw = max_pw_;
+    }
+
     unsigned char Channel::get_channel_num(){
         return channel_num;
     }

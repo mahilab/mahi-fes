@@ -33,10 +33,21 @@ target_link_libraries(test_stim
 # create an app from your source files
 add_executable(ex_visualization
     "examples/ex_visualization.cpp"
+    "include/FES/Core/Stimulator.hpp"
+    "src/FES/Core/Stimulator.cpp"
+    "include/FES/Core/Channel.hpp"
+    "src/FES/Core/Channel.cpp"
+    "include/FES/Core/Event.hpp"
+    "src/FES/Core/Event.cpp"
+    "include/FES/Core/Scheduler.hpp"
+    "src/FES/Core/Scheduler.cpp"
+    "include/FES/Utility/Utility.hpp"
+    "src/FES/Utility/Utility.cpp"
 )
 # link your app to MEL libaries
 target_link_libraries(ex_visualization 
     mahi::gui 
+    MEL::MEL
 )
 
 
