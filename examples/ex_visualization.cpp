@@ -75,7 +75,7 @@ public:
             for (size_t i = 0; i < num_channels; i++){
                 ImGui::ColorEdit4(("##Color"+ std::to_string(i)).c_str(), (float*)&color[i], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
                 ImGui::SameLine(); 
-                ImGui::Text(("Channel " + std::to_string(i+1) + ": " + channel_names[i]).c_str());
+                ImGui::Text(("Channel " + std::to_string(i+1) + ": " + stimulator->channel_names[i]).c_str());
                 ImGui::Separator();
                 ImGui::PushItemWidth(70);
 
@@ -159,7 +159,7 @@ public:
         
     }
 
-    std::vector<std::string> channel_names = {"Bicep", "Tricep", "Forearm Pronation", "Forearm Supination", "Wrist Flexion", "Wrist Extension", "Wrist Radial Dev", "Wrist Ulnar Dev"};
+    // std::vector<std::string> channel_names = {"Bicep", "Tricep", "Forearm Pronation", "Forearm Supination", "Wrist Flexion", "Wrist Extension", "Wrist Radial Dev", "Wrist Ulnar Dev"};
 
     Stimulator *stimulator;
     std::vector<int> amp;
@@ -190,16 +190,16 @@ int main(int argc, char const *argv[])
     // create channels of interest
     std::vector<Channel> channels;
 
-    Channel bicep  ("bicep",   CH_1, 100, 250);
+    Channel bicep  ("Bicep",   CH_1, 100, 250);
     channels.push_back(bicep);
 
-    Channel tricep ("tricep",  CH_2, 100, 250);
+    Channel tricep ("Tricep",  CH_2, 100, 250);
     channels.push_back(tricep);
 
-    Channel forearm("forearm", CH_3, 100, 250);
+    Channel forearm("Forearm Pronation", CH_3, 100, 250);
     channels.push_back(forearm);
     
-    Channel wrist  ("wrist",   CH_4, 100, 250);
+    Channel wrist  ("Wrist Flexion",   CH_4, 100, 250);
     channels.push_back(wrist);
     
     // Create stim board with a name, comport, and channels to add

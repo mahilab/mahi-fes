@@ -32,6 +32,7 @@ namespace fes{
         for (auto i = 0; i < num_events; i++){
             max_amplitudes[i] = channels[i].get_max_amplitude();
             max_pulsewidths[i] = channels[i].get_max_pulse_width();
+            channel_names.push_back(channels[i].get_channel_name());
         }        
         enable();
     }

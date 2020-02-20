@@ -48,6 +48,7 @@ namespace fes{
         std::vector<int> pulsewidths;
         std::vector<int> max_amplitudes;
         std::vector<int> max_pulsewidths;
+        std::vector<std::string> channel_names;
 
     private:
         // variables for serial communication
