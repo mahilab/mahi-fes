@@ -19,8 +19,6 @@ namespace fes{
 
         void disable();
 
-        void set_stim(const int pulse_width_);
-
         std::string get_name();
 
         bool create_scheduler(const unsigned char sync_msg, unsigned int duration);
@@ -30,12 +28,18 @@ namespace fes{
         bool is_enabled();
 
         void write_amp(Channel channel_, unsigned int amplitude_);
+
+        void write_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_);
+
+        void write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_);
         
         void write_pw(Channel channel_, unsigned int pw_);
 
         bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
 
         bool add_events(std::vector<Channel> channels_, unsigned char event_type = STIM_EVENT);
+
+        std::vector<Channel> get_channels();
 
         bool begin();
 

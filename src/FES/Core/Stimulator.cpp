@@ -226,6 +226,18 @@ namespace fes{
         }
     }
 
+    void Stimulator::write_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_){
+        for (size_t i = 0; i < channels_.size(); i++){
+            write_amp(channels_[i], amplitudes_[i]);
+        }
+    }
+
+    void Stimulator::write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_){
+        for (size_t i = 0; i < channels_.size(); i++){
+            write_pw(channels_[i], pulsewidths_[i]);
+        }
+    }
+
     void Stimulator::write_pw(Channel channel_, unsigned int pw_){
         if (is_enabled()){
             scheduler.write_pw(channel_, pw_);
@@ -289,6 +301,10 @@ namespace fes{
             LOG(Error) << "Stimulator has not yet been enabled. Not adding event to scheduler";
             return false;
         }
+    }
+
+    std::vector<Channel> Stimulator::get_channels(){
+        return channels;
     }
 
     bool Stimulator::is_open(){
