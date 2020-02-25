@@ -11,6 +11,7 @@ using namespace mahi::gui;
 namespace fes{
     class Visualizer : public Application{
     private:
+        ImGuiInputTextFlags enabled_flags = 0;
         std::thread viz_thread;
         Stimulator *stimulator;
         std::vector<int> amp;

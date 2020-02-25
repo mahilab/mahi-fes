@@ -3,6 +3,9 @@
 #include <FES/Core/Muscle.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Core/Timer.hpp>
+#include <thread>
+#include <mutex>
+#include <FES/Utility/Visualizer.hpp>
 
 
 using namespace mel;
@@ -44,27 +47,34 @@ int main() {
     stim.add_events(channels);
 
     // Initialize a timer for how often to update
-    Timer timer(milliseconds(1), Timer::WaitMode::Hybrid);
+    Timer timer(milliseconds(5), Timer::WaitMode::Hybrid);
     timer.set_acceptable_miss_rate(0.05);
+    double t;
+
+    std::thread viz_thread([&stim](){Visualizer visualizer(&stim);});
 
     // start sending stimulation to the board
     stim.begin();
 
     while(!stop){
+        {
+            // std::lock_guard<std::mutex> lock(mtx);
+            // update the pulsewidth of each of the stimulation events
+            stim.write_amp(bicep,40+int(10*sin(t)));
+            stim.write_amp(tricep,30+int(10*sin(t)));
+            stim.write_amp(forearm,20+int(10*sin(t)));
+            stim.write_amp(wrist,10+int(10*sin(t)));
 
-        // update the pulsewidth of each of the stimulation events
-        stim.write_pw(bicep,0);
-        stim.write_pw(tricep,0);
-        stim.write_pw(forearm,0);
-        stim.write_pw(wrist,0);
-
-        // command the stimulation patterns to be sent to the stim board
-        stim.update();
+            // command the stimulation patterns to be sent to the stim board
+            stim.update();
+        }
+        t = timer.wait().as_seconds();
     }
 
     // disable events, schedulers, boards, etc
     stim.disable();
 
+    viz_thread.join();
 
     return 0;
 }

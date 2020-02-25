@@ -1,6 +1,7 @@
 #include "Windows.h"
 #include <MEL/Logging/Log.hpp>
 #include <vector>
+#include <MEL/Core/Timer.hpp>
 
 using namespace mel;
 

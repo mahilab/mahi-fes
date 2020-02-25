@@ -24,9 +24,12 @@ add_executable(test_stim
     "src/FES/Core/Scheduler.cpp"
     "include/FES/Utility/Utility.hpp"
     "src/FES/Utility/Utility.cpp"
+    "include/FES/Utility/Visualizer.hpp"
+    "src/FES/Utility/Visualizer.cpp"
 )
 # link your app to MEL libaries
 target_link_libraries(test_stim 
+    mahi::gui
     MEL::MEL 
 )
 

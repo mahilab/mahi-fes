@@ -23,8 +23,6 @@ namespace fes{
 
         bool create_scheduler(const unsigned char sync_msg, unsigned int duration);
 
-        bool is_open();
-        
         bool is_enabled();
 
         void write_amp(Channel channel_, unsigned int amplitude_);
@@ -34,6 +32,10 @@ namespace fes{
         void write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_);
         
         void write_pw(Channel channel_, unsigned int pw_);
+
+        void update_max_amp(Channel channel_, unsigned int max_amp_);
+        
+        void update_max_pw(Channel channel_, unsigned int max_pw_);
 
         bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
 
@@ -64,7 +66,6 @@ namespace fes{
         std::string name;
         std::string com_port;
         bool enabled;
-        bool open;
         std::vector<Channel> channels;
         Scheduler scheduler;
         mel::Time setup_time = mel::milliseconds(100);
@@ -75,6 +76,6 @@ namespace fes{
         
         bool initialize_board();
         
-        bool close_stimulator();
+        void close_stimulator();
     };
 }

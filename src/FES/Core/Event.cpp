@@ -7,14 +7,6 @@
 using namespace mel;
 namespace fes{
 
-    // Event::Event():
-        // schedule_id(0x00),
-        // channel(0x00),
-
-        // {
-
-        // }
-
     Event::Event(HANDLE& hComm_, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, int pulse_width_, int amplitude_, unsigned char event_type_, unsigned char priority_, unsigned char zone_):
         hComm(hComm_),
         schedule_id(schedule_id_),
@@ -33,7 +25,7 @@ namespace fes{
     }
 
     Event::~Event(){
-        delete_event();
+        
     }
 
     bool Event::create_event(){

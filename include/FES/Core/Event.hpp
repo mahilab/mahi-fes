@@ -27,6 +27,7 @@ namespace fes{
         // Event();
 
         Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, int pulse_width_ = 0, int amplitude_ = 0, unsigned char event_type_ = STIM_EVENT, unsigned char priority_ = 0x00, unsigned char zone_ = 0x00);
+
         ~Event();
         bool create_event();
 

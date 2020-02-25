@@ -1,6 +1,7 @@
 #include <FES/Utility/Visualizer.hpp>
 #include <mahi/gui.hpp>
 #include <FES/Core/Stimulator.hpp>
+#include <imgui_internal.h>
 
 using namespace fes;
 using namespace mahi::gui;
@@ -67,15 +68,23 @@ void Visualizer::update(){
             ImGui::Text(("Channel " + std::to_string(i+1) + ": " + channels[i].get_channel_name()).c_str());
             ImGui::Separator();
             ImGui::PushItemWidth(70);
-
+            
+            if (!enabled[i]){
+                enabled_flags = ImGuiInputTextFlags_ReadOnly;
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+            }
+            else{
+                enabled_flags = 0;
+            }
             ImGui::BeginGroup();
                 ImGui::LabelText("##Amplitude", "Amplitude");
-                ImGui::InputInt(("##amp" + std::to_string(i)).c_str(), &amp[i]);
+                ImGui::InputInt(("##amp" + std::to_string(i)).c_str(), &amp[i], 1, 100, enabled_flags);
+                
             ImGui::EndGroup();
             ImGui::SameLine(100);
             ImGui::BeginGroup();
                 ImGui::LabelText("##PulseWidth","PulseWidth");
-                ImGui::InputInt(("##pw" + std::to_string(i)).c_str(), &pw[i]);
+                ImGui::InputInt(("##pw" + std::to_string(i)).c_str(), &pw[i], 1, 100, enabled_flags);
             ImGui::EndGroup();
 
             ImGui::SameLine(200);
@@ -86,16 +95,17 @@ void Visualizer::update(){
                 ImGui::SameLine();
                 ImGui::PopItemWidth();
                 ImGui::PushItemWidth(75);
-                ImGui::InputInt(("##maxamp" + std::to_string(i)).c_str(), &max_amp[i]);
+                ImGui::InputInt(("##maxamp" + std::to_string(i)).c_str(), &max_amp[i], 1, 100, enabled_flags);
                 ImGui::PopItemWidth();
                 ImGui::PushItemWidth(50);
                 ImGui::LabelText("##Max PW","Max PW");
                 ImGui::SameLine();
                 ImGui::PopItemWidth();
                 ImGui::PushItemWidth(75);
-                ImGui::InputInt(("##maxpw" + std::to_string(i)).c_str(), &max_pw[i]);
+                ImGui::InputInt(("##maxpw" + std::to_string(i)).c_str(), &max_pw[i], 1, 100, enabled_flags);
             ImGui::EndGroup();
             ImGui::PopItemWidth();
+            if (!enabled[i]) ImGui::PopStyleVar();
             
             ImGui::SameLine(350);
             ImGui::PopItemWidth();
@@ -108,6 +118,7 @@ void Visualizer::update(){
                 ImGui::PushItemWidth(75);
                 ImGui::Checkbox(("##Enable" + std::to_string(i)).c_str(), &enabled[i]);
                 ImGui::PopItemWidth();
+            
                 ImGui::PushItemWidth(45);
                 ImGui::LabelText("##Plot", "Plot");
                 ImGui::SameLine();
@@ -136,11 +147,14 @@ void Visualizer::update(){
 
     {
         std::lock_guard<std::mutex> lock(mtx);
-        // WORK ON THIS
-        stimulator->write_amps(channels,amp);
-        stimulator->write_pws(channels,pw);
-        stimulator->max_amplitudes = max_amp;
-        stimulator->max_pulsewidths = max_pw;
+        for (size_t i = 0; i < num_channels; i++){
+            if (enabled[i]){
+                stimulator->write_amp(channels[i],amp[i]);
+                stimulator->write_pw(channels[i],pw[i]);
+                stimulator->update_max_amp(channels[i],max_amp[i]);
+                stimulator->update_max_pw(channels[i],max_pw[i]);
+            } 
+        }
     }
 
     if (!open){

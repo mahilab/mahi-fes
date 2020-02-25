@@ -1,6 +1,7 @@
 #include <FES/Core/Scheduler.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <FES/Utility/Utility.hpp>
+#include <MEL/Core/Timer.hpp>
 
 using namespace mel;
 
@@ -11,6 +12,9 @@ namespace fes{
     }
 
     Scheduler::~Scheduler(){
+        for (auto event = events.begin(); event != events.end(); event++){
+            event->delete_event();
+        }
         disable();
     }
 
@@ -74,14 +78,10 @@ namespace fes{
             }
 
             // add 5 us delay so that they don't all occur at the exact same time
-            auto delay_time = 5*events.size();           
-
+            auto delay_time = 5; // ms
+            
             // add event to list of events
-            events.push_back(Event(hComm, 
-                                   id, 
-                                   delay_time, 
-                                   channel_, 
-                                   (unsigned char)(num_events+1)));
+            events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(num_events+1)));
             
             return true;
         }
@@ -129,10 +129,11 @@ namespace fes{
 
     void Scheduler::write_amp(Channel channel_, unsigned int amplitude_){
         // loop over available events in the scheduler
-        for (auto it = events.begin(); it != events.end(); it++){
+        for (auto event = events.begin(); event != events.end(); event++){
             // if the event is for the correct channel we are looking for, write the amplitude and exit the function
-            if (it->get_channel_num()==channel_.get_channel_num()){
-                it->set_amplitude(amplitude_);
+            if (event->get_channel_num()==channel_.get_channel_num()){
+                event->set_amplitude(amplitude_);
+                return;
             }
         }
         // if we didnt find the event, something is messed up, so return false
@@ -157,7 +158,8 @@ namespace fes{
         for (auto event = events.begin(); event != events.end(); event++){
             // if the event is for the correct channel we are looking for, wrevente the ampleventude and exevent the function
             if (event->get_channel_num()==channel_.get_channel_num()){
-                return event->set_pulsewidth(pw_);
+                event->set_pulsewidth(pw_);
+                return;
             }
         }
         // if we didnt find the event, something is messed up, so return false

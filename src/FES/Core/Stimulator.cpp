@@ -19,7 +19,6 @@ namespace fes{
         name(name_),
         com_port(com_port_),
         enabled(false),
-        open(false),
         channels(channels_),
         scheduler(),
         num_events(size_),
@@ -117,7 +116,7 @@ namespace fes{
         // set parameters to use for serial communication
 
         // set the baud rate that we will communicate at to 9600
-        dcbSerialParams.BaudRate = CBR_9600;
+        dcbSerialParams.BaudRate = CBR_115200;
 
         // 8 bits in the bytes transmitted and received.
         dcbSerialParams.ByteSize = 8;
@@ -193,21 +192,13 @@ namespace fes{
         return scheduler.halt_scheduler();
     }
 
-    bool Stimulator::close_stimulator(){
-        bool successful = false;
-
-        if (successful){
-            enabled = false;
-        }
-
+    void Stimulator::close_stimulator(){
         CloseHandle(hComm);     
-        open = false;
-
-        return successful;
+        enabled = false;
     }
 
     bool Stimulator::begin(){
-        if (is_open()){
+        if (is_enabled()){
             enabled = true;
             return scheduler.send_sync_msg();
         }
@@ -245,6 +236,28 @@ namespace fes{
         else{
             LOG(Error) << "Stimulator has not yet been enabled. Not writing pulsewidth";
         }
+    }
+
+    void Stimulator::update_max_amp(Channel channel_, unsigned int max_amp_){
+        for (auto channel = channels.begin(); channel != channels.end(); channel++){
+            // if the channel is the correct channel we are looking for, set the max amplitude of the channel
+            if (channel->get_channel_name()==channel_.get_channel_name()){
+                channel->set_max_amplitude(max_amp_);
+                return;
+            }
+        }
+        LOG(Error) << "Did not find the correct channel to update";
+    }
+    
+    void Stimulator::update_max_pw(Channel channel_, unsigned int max_pw_){
+        for (auto channel = channels.begin(); channel != channels.end(); channel++){
+            // if the channel is the correct channel we are looking for, set the max pulsewidth of the channel
+            if (channel->get_channel_name()==channel_.get_channel_name()){
+                channel->set_max_pulse_width(max_pw_);
+                return;
+            }
+        }
+        LOG(Error) << "Did not find the correct channel to update";
     }
 
     bool Stimulator::update(){
@@ -291,7 +304,7 @@ namespace fes{
         if (is_enabled()){
             for (size_t i = 0; i < channels_.size(); i++){
                 // If any channel fails to add, return false after throwing an error
-                if(!scheduler.add_event(channels_[i], event_type)){
+                if(!add_event(channels_[i], event_type)){
                     return false;
                 };
             }
@@ -305,10 +318,6 @@ namespace fes{
 
     std::vector<Channel> Stimulator::get_channels(){
         return channels;
-    }
-
-    bool Stimulator::is_open(){
-        return open;
     }
 
     bool Stimulator::is_enabled(){
