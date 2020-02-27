@@ -122,7 +122,7 @@ void VirtualStim::poll(){
 
             DWORD body_size = (unsigned int)msg_header[3]+1;
             unsigned char *msg_body = new unsigned char[body_size];
-            if(!ReadFile(hComm, msg_header, body_size, &dwBytesRead, NULL)){
+            if(!ReadFile(hComm, msg_body, body_size, &dwBytesRead, NULL)){
                 LOG(Error) << "Could not read message body";
                 done_reading = true;
             }
