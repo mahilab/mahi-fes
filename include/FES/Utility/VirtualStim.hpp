@@ -15,7 +15,7 @@ namespace fes{
     public:
         VirtualStim(const std::string& com_port_);
         ~VirtualStim();
-        void Poll();
+        void poll();
     };
 
 }

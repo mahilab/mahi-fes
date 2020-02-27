@@ -9,7 +9,11 @@ using namespace mel;
 VirtualStim::VirtualStim(const std::string& com_port_):
 com_port(com_port_)
 {
-
+    open_port();
+    configure_port();
+    while(true){
+        poll();
+    }
 }
 
 VirtualStim::~VirtualStim(){
@@ -76,8 +80,6 @@ bool VirtualStim::configure_port(){  // configure_port establishes the settings 
     dcbSerialParams.fInX  = FALSE;
     dcbSerialParams.fRtsControl = RTS_CONTROL_DISABLE;
     dcbSerialParams.fDtrControl = DTR_CONTROL_DISABLE;
-    // dcbSerialParams.fOutxCtsFlow = FALSE;
-    // dcbSerialParams.fOutxDsrFlow = FALSE;
 
     // Set communication parameters for the serial port
     if(!SetCommState(hComm, &dcbSerialParams)){
@@ -95,6 +97,48 @@ bool VirtualStim::configure_port(){  // configure_port establishes the settings 
         LOG(Error) << "Error setting serial port timeouts";
         return false;
     }
-
     return true;
+}
+
+void VirtualStim::poll(){
+    bool done_reading = false;
+    while (!done_reading){
+        
+        DWORD header_size = 4;
+        unsigned char msg_header[4];
+        
+        DWORD dwBytesRead = 0;
+        
+        if(!ReadFile(hComm, msg_header, header_size, &dwBytesRead, NULL)){
+            done_reading = true;
+        }
+        else{
+            std::cout << "Message Header: ";
+            for (auto i = 0; i < header_size; i++){
+                std::cout << (unsigned int)msg_header[i];
+                if(i != (header_size-1)) std::cout << ", ";
+            }
+            std::cout << std::endl;
+
+            DWORD body_size = (unsigned int)msg_header[3]+1;
+            unsigned char *msg_body = new unsigned char[body_size];
+            if(!ReadFile(hComm, msg_header, body_size, &dwBytesRead, NULL)){
+                LOG(Error) << "Could not read message body";
+                done_reading = true;
+            }
+            else{
+                std::cout << "Message: ";
+                for (auto i = 0; i < body_size; i++){
+                    std::cout << (unsigned int)msg_body[i];
+                    if(i != (body_size-1)) std::cout << ", ";
+                }
+                std::cout << std::endl;
+            }
+            delete[] msg_body;
+        }        
+
+        // clear up memory from declaring char vector with new operator
+        
+    }
+    
 }

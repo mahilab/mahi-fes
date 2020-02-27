@@ -140,7 +140,7 @@ namespace fes{
         LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
     }
 
-    int Scheduler::get_amp(Channel channel_){
+    unsigned int Scheduler::get_amp(Channel channel_){
         // loop over available events in the scheduler
         for (auto event = events.begin(); event != events.end(); event++){
             // if the event is for the correct channel we are looking for, wrevente the ampleventude and exevent the function
@@ -166,7 +166,7 @@ namespace fes{
         LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
     }
 
-    int Scheduler::get_pw(Channel channel_){
+    unsigned int Scheduler::get_pw(Channel channel_){
         // loop over available events in the scheduler
         for (auto event = events.begin(); event != events.end(); event++){
             // if the event is for the correct channel we are looking for, wrevente the ampleventude and exevent the function

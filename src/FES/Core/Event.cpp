@@ -7,7 +7,7 @@
 using namespace mel;
 namespace fes{
 
-    Event::Event(HANDLE& hComm_, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, int pulse_width_, int amplitude_, unsigned char event_type_, unsigned char priority_, unsigned char zone_):
+    Event::Event(HANDLE& hComm_, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, unsigned int pulse_width_, unsigned int amplitude_, unsigned char event_type_, unsigned char priority_, unsigned char zone_):
         hComm(hComm_),
         schedule_id(schedule_id_),
         delay_time(delay_time_),
@@ -68,7 +68,7 @@ namespace fes{
         }
     }
 
-    int Event::get_amplitude(){
+    unsigned int Event::get_amplitude(){
         return amplitude;
     }
 
@@ -86,7 +86,7 @@ namespace fes{
         }
     }
 
-    int Event::get_pulsewidth(){
+    unsigned int Event::get_pulsewidth(){
         return pulse_width;
     }
 

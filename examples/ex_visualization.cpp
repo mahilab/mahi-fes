@@ -1,4 +1,4 @@
-#define MAHI_GUI_NO_CONSOLE
+// #define MAHI_GUI_NO_CONSOLE
 #include "mahi/gui.hpp"
 #include <FES/Core/Stimulator.hpp>
 #include <FES/Core/Channel.hpp>
