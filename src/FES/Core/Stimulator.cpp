@@ -116,7 +116,7 @@ namespace fes{
         // set parameters to use for serial communication
 
         // set the baud rate that we will communicate at to 9600
-        dcbSerialParams.BaudRate = CBR_115200;
+        dcbSerialParams.BaudRate = CBR_9600;
 
         // 8 bits in the bytes transmitted and received.
         dcbSerialParams.ByteSize = 8;

@@ -64,7 +64,7 @@ bool VirtualStim::configure_port(){  // configure_port establishes the settings 
     // set parameters to use for serial communication
 
     // set the baud rate that we will communicate at to 9600
-    dcbSerialParams.BaudRate = CBR_115200;
+    dcbSerialParams.BaudRate = CBR_9600;
 
     // 8 bits in the bytes transmitted and received.
     dcbSerialParams.ByteSize = 8;
@@ -114,7 +114,7 @@ void VirtualStim::poll(){
         }
         else{
             std::cout << "Message Header: ";
-            for (auto i = 0; i < header_size; i++){
+            for (unsigned int i = 0; i < header_size; i++){
                 std::cout << (unsigned int)msg_header[i];
                 if(i != (header_size-1)) std::cout << ", ";
             }
@@ -128,16 +128,17 @@ void VirtualStim::poll(){
             }
             else{
                 std::cout << "Message: ";
-                for (auto i = 0; i < body_size; i++){
+                for (unsigned int i = 0; i < body_size; i++){
                     std::cout << (unsigned int)msg_body[i];
                     if(i != (body_size-1)) std::cout << ", ";
                 }
                 std::cout << std::endl;
             }
+            // clear up memory from declaring char vector with new operator
             delete[] msg_body;
         }        
 
-        // clear up memory from declaring char vector with new operator
+        
         
     }
     

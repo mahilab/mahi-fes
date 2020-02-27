@@ -67,7 +67,7 @@ namespace fes{
 
     bool Scheduler::add_event(Channel channel_, unsigned char event_type){
 
-        auto num_events = events.size();
+        unsigned int num_events = (unsigned int)events.size();
 
         if (enabled){
             for (auto i = 0; i < num_events; i++){
