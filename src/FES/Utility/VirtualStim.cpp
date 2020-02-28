@@ -2,22 +2,36 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <codecvt>
+#include <mahi/gui.hpp>
+#include <thread>
+#include <mutex>
 
 using namespace fes;
 using namespace mel;
 
 VirtualStim::VirtualStim(const std::string& com_port_):
+Application(1300,800,"Stimulator Visualization"),
 com_port(com_port_)
 {
     open_port();
     configure_port();
-    while(true){
-        poll();
-    }
+    
+    // std::thread poll_thread(&VirtualStim::poll, this);
+
+    ImGui::StyleColorsLight();
+    // hideWindow();
+    
 }
 
 VirtualStim::~VirtualStim(){
+    // poll_thread.join();
+}
 
+void VirtualStim::update(){
+    ImGui::Begin("Virtual Stimulator Receiver", &open);
+    ImGui::Text(recent_msg_int.c_str());
+    // ImGui::Text("Hello");
+    ImGui::End();
 }
 
 bool VirtualStim::open_port(){
@@ -101,8 +115,8 @@ bool VirtualStim::configure_port(){  // configure_port establishes the settings 
 }
 
 void VirtualStim::poll(){
-    bool done_reading = false;
-    while (!done_reading){
+    // bool done_reading = false;
+    while (true){
         
         DWORD header_size = 4;
         unsigned char msg_header[4];
@@ -110,7 +124,7 @@ void VirtualStim::poll(){
         DWORD dwBytesRead = 0;
         
         if(!ReadFile(hComm, msg_header, header_size, &dwBytesRead, NULL)){
-            done_reading = true;
+            // done_reading = true;
         }
         else{
             std::cout << "Message Header: ";
@@ -121,10 +135,11 @@ void VirtualStim::poll(){
             std::cout << std::endl;
 
             DWORD body_size = (unsigned int)msg_header[3]+1;
-            unsigned char *msg_body = new unsigned char[body_size];
-            if(!ReadFile(hComm, msg_body, body_size, &dwBytesRead, NULL)){
+            // unsigned char *msg_body = new unsigned char[body_size];
+            std::unique_ptr<unsigned char[]> msg_body(new unsigned char[body_size]);
+            if(!ReadFile(hComm, msg_body.get(), body_size, &dwBytesRead, NULL)){
                 LOG(Error) << "Could not read message body";
-                done_reading = true;
+                // done_reading = true;
             }
             else{
                 std::cout << "Message: ";
@@ -134,12 +149,22 @@ void VirtualStim::poll(){
                 }
                 std::cout << std::endl;
             }
-            // clear up memory from declaring char vector with new operator
-            delete[] msg_body;
+            if(msg_header[0] == (unsigned char)0x04 && msg_header[1] == (unsigned char)0x80){
+                std::vector<unsigned char> msg;
+                for (auto i = 0; i < (header_size + body_size); i++){
+                    if (i < header_size) msg.push_back(msg_header[i]) ;
+                    else msg.push_back(msg_body[i-header_size]);
+                }
+                std::string temp = "";
+                for (size_t i = 0; i < msg.size(); i++){
+                    // std::cout << (unsigned int)msg[i];
+                    temp += (std::to_string((unsigned int)msg[i]));
+                    if(i != msg.size()-1) temp += ", ";
+                }
+                // std::cout << temp;
+                recent_msg_int = temp;
+            }   
         }        
-
-        
         
     }
-    
 }

@@ -1,5 +1,4 @@
 #include <FES/Core/Channel.hpp>
-// #include <FES/Core/Stimulator.hpp>
 #include <FES/Utility/Utility.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>

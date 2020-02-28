@@ -61,6 +61,8 @@ add_executable(ex_virtual_stim
     "include/FES/Utility/VirtualStim.hpp"
     "src/FES/Utility/VirtualStim.cpp"
 )
+
 target_link_libraries(ex_virtual_stim 
     MEL::MEL
+    mahi::gui
 )
