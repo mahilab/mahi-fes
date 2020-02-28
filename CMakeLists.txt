@@ -26,6 +26,8 @@ add_executable(test_stim
     "src/FES/Utility/Utility.cpp"
     "include/FES/Utility/Visualizer.hpp"
     "src/FES/Utility/Visualizer.cpp"
+    "include/FES/Utility/VirtualStim.hpp"
+    "src/FES/Utility/VirtualStim.cpp"
 )
 # link your app to MEL libaries
 target_link_libraries(test_stim 

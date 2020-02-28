@@ -101,8 +101,6 @@ namespace fes{
                                          0x00,                       // Placeholder for other parameters
                                          0x00};                      // Checksum placeholder
 
-        std::cout << (unsigned int)event_id << std::endl;
-
         if(write_message(hComm, edit_event_msg, sizeof(edit_event_msg)/sizeof(*edit_event_msg), "NONE")){
             return true;
         }

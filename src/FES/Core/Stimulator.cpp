@@ -27,7 +27,6 @@ namespace fes{
         max_amplitudes(num_events,0),
         max_pulsewidths(num_events,0)
     {
-        print(num_events);
         for (auto i = 0; i < num_events; i++){
             max_amplitudes[i] = channels[i].get_max_amplitude();
             max_pulsewidths[i] = channels[i].get_max_pulse_width();

@@ -16,9 +16,5 @@ int main(){
     register_ctrl_handler(handler);
 
     VirtualStim vstim("COM10");
-
-    // Timer poll_timer(milliseconds(1), Timer::WaitMode::Hybrid);
-    std::thread poll_thread(&VirtualStim::poll, &vstim);
-
-    vstim.run();
+    vstim.begin();
 }

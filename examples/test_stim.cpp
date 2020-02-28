@@ -6,7 +6,7 @@
 #include <thread>
 #include <mutex>
 #include <FES/Utility/Visualizer.hpp>
-
+#include <FES/Utility/VirtualStim.hpp>
 
 using namespace mel;
 using namespace fes;
@@ -52,6 +52,9 @@ int main() {
     double t;
 
     std::thread viz_thread([&stim](){Visualizer visualizer(&stim);});
+
+    // VirtualStim vstim("COM10");
+    // vstim.begin();
 
     // start sending stimulation to the board
     stim.begin();
