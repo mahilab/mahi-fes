@@ -11,6 +11,7 @@
 #include <string>
 #include <codecvt>
 #include <locale>
+#include <mutex>
 
 using namespace mel;
 
@@ -62,6 +63,7 @@ namespace fes{
 
     void Stimulator::disable(){
         if(is_enabled()){
+            scheduler.disable();
             close_stimulator();
             LOG(Info) << "Stimulator Disabled";
         }
@@ -261,15 +263,18 @@ namespace fes{
 
     bool Stimulator::update(){
         if (is_enabled()){
-            amplitudes.resize(num_events);
-            pulsewidths.resize(num_events);
-            max_amplitudes.resize(num_events);
-            max_pulsewidths.resize(num_events);
-            for (size_t i = 0; i < scheduler.get_num_events(); i++){
-                amplitudes[i]  = scheduler.get_amp(channels[i]);
-                pulsewidths[i] = scheduler.get_pw(channels[i]);
-                max_amplitudes[i] = channels[i].get_max_amplitude();
-                max_pulsewidths[i] = channels[i].get_max_pulse_width();
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                // amplitudes.resize(num_events);
+                // pulsewidths.resize(num_events);
+                // max_amplitudes.resize(num_events);
+                // max_pulsewidths.resize(num_events);
+                for (size_t i = 0; i < scheduler.get_num_events(); i++){
+                    amplitudes[i]  = scheduler.get_amp(channels[i]);
+                    pulsewidths[i] = scheduler.get_pw(channels[i]);
+                    max_amplitudes[i] = channels[i].get_max_amplitude();
+                    max_pulsewidths[i] = channels[i].get_max_pulse_width();
+                }
             }
             return scheduler.update();
         }
@@ -279,7 +284,15 @@ namespace fes{
         }
     }
 
-    bool Stimulator::create_scheduler(const unsigned char sync_msg , unsigned int duration){
+    bool Stimulator::create_scheduler(const unsigned char sync_msg , double frequency_){
+        unsigned int duration;
+        if(frequency_ > 0){
+            duration = unsigned int(1.0/frequency_*1000);
+        }
+        else{
+             duration = 50;
+        }
+        
         if (is_enabled()){
             return scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
         }

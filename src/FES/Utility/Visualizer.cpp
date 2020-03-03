@@ -6,7 +6,7 @@
 using namespace fes;
 using namespace mahi::gui;
 
-Visualizer::Visualizer(Stimulator *stimulator_) : Application(1300,800,"Stimulator Visualization"),
+Visualizer::Visualizer(Stimulator *stimulator_) : Application(),
     stimulator(stimulator_),
     amp(stimulator->amplitudes),
     pw(stimulator->pulsewidths),
@@ -24,7 +24,7 @@ Visualizer::Visualizer(Stimulator *stimulator_) : Application(1300,800,"Stimulat
         plot_interface.xAxis.maximum = 10;
         plot_interface.yAxis.minimum = -1;   
         plot_interface.yAxis.maximum = float(*max_element(max_amp.begin(), max_amp.end()));
-        plot_interface.xAxis.showLabels = true;
+        plot_interface.xAxis.showTickLabels = true;
 
         items.resize(num_channels);
         for (auto i = 0; i < num_channels; i++){
@@ -33,8 +33,6 @@ Visualizer::Visualizer(Stimulator *stimulator_) : Application(1300,800,"Stimulat
             items[i].size = 3;
         }
         elapse_clock.restart();
-
-        run();
     }
 
 Visualizer::~Visualizer(){
@@ -132,8 +130,11 @@ void Visualizer::update(){
         }
 
     for (auto i = 0; i < num_channels; i++){
-        roll_point(items[i], elapse_clock.get_elapsed_time(), amp[i]);
+        // roll_point(items[i], elapse_clock.get_elapsed_time(), amp[i]);
+        ImGui::PlotItemBufferPoint(items[i], elapse_clock.get_elapsed_time().as_seconds(), amp[i],20000);
     }
+    plot_interface.xAxis.minimum = elapse_clock.get_elapsed_time().as_seconds() - 10;
+    plot_interface.xAxis.maximum = (float)time();
     
     ImGui::EndGroup();
     ImGui::SameLine();
@@ -145,6 +146,14 @@ void Visualizer::update(){
     ImGui::Plot("Position", plot_interface, items);
     ImGui::End();
 
+    for (size_t i = 0; i < num_channels; i++){
+        amp[i] = (amp[i] < 0) ? 0 : amp[i];
+        amp[i] = (amp[i] < max_amp[i]) ? amp[i] : max_amp[i];
+
+        pw[i] = (pw[i] < 0) ? 0 : pw[i];
+        pw[i] = (pw[i] < max_pw[i]) ? pw[i] : max_pw[i];
+    }    
+
     {
         std::lock_guard<std::mutex> lock(mtx);
         for (size_t i = 0; i < num_channels; i++){
@@ -153,9 +162,14 @@ void Visualizer::update(){
                 stimulator->write_pw(channels[i],pw[i]);
                 stimulator->update_max_amp(channels[i],max_amp[i]);
                 stimulator->update_max_pw(channels[i],max_pw[i]);
+                stimulator->amplitudes[i] = amp[i];
+                stimulator->pulsewidths[i] = pw[i];
+                stimulator->max_amplitudes[i] = max_amp[i];
+                stimulator->max_pulsewidths[i] = max_pw[i];
             } 
         }
     }
+    // stimulator->update();
 
     if (!open){
         quit();

@@ -26,13 +26,14 @@ namespace fes{
         std::string name;
         unsigned char aspect;
         unsigned char channel_num;
+        unsigned char an_ca_nums;
         unsigned int max_amp;  // maximum amplitude
         unsigned int max_pw;   // maximum pulsewidth
         unsigned int ip_delay; // interphase delay
         unsigned char event_id;
     public:
 
-        Channel(const std::string& name_, unsigned char channel_num_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_ = 100, unsigned char aspect_ = ONE_TO_ONE);
+        Channel(const std::string& name_, unsigned char channel_num_, unsigned char an_ca_nums_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_ = 100, unsigned char aspect_ = ONE_TO_ONE);
         
         ~Channel();
 

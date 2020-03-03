@@ -17,4 +17,5 @@ int main(){
 
     VirtualStim vstim("COM10");
     vstim.begin();
+    return 0;
 }

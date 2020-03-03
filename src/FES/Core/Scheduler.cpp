@@ -12,9 +12,6 @@ namespace fes{
     }
 
     Scheduler::~Scheduler(){
-        for (auto event = events.begin(); event != events.end(); event++){
-            event->delete_event();
-        }
         disable();
     }
 
@@ -78,7 +75,7 @@ namespace fes{
             }
 
             // add 5 us delay so that they don't all occur at the exact same time
-            auto delay_time = 5; // ms
+            auto delay_time = 5*num_events; // ms
             
             // add event to list of events
             events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(num_events+1)));
@@ -116,6 +113,12 @@ namespace fes{
 
     void Scheduler::disable(){
         enabled = false;
+
+        halt_scheduler();
+
+        for (auto event = events.begin(); event != events.end(); event++){
+            event->delete_event();
+        }
 
         unsigned char del_sched[] = { DEST_ADR,            // Destination
                                       SRC_ADR,             // Source  

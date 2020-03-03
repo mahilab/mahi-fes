@@ -25,39 +25,45 @@ int main() {
     // create channels of interest
     std::vector<Channel> channels;
 
-    Channel bicep  ("bicep",   CH_1, 100, 250);
+    Channel bicep  ("bicep",   CH_1, AN_CA_1, 100, 250);
     channels.push_back(bicep);
 
-    Channel tricep ("tricep",  CH_2, 100, 250);
+    Channel tricep ("tricep",  CH_2, AN_CA_2, 100, 250);
     channels.push_back(tricep);
 
-    Channel forearm("forearm", CH_3, 100, 250);
+    Channel forearm("forearm", CH_3, AN_CA_3, 100, 250);
     channels.push_back(forearm);
     
-    Channel wrist  ("wrist",   CH_4, 100, 250);
+    Channel wrist  ("wrist",   CH_4, AN_CA_4, 100, 250);
     channels.push_back(wrist);
     
     // Create stim board with a name, comport, and channels to add
     Stimulator stim("UECU Board", "COM9", channels, channels.size());
 
-    // Initialize scheduler with the sync character and duration of scheduler in ms
-    stim.create_scheduler(0xAA, 25);
+    // Initialize scheduler with the sync character and frequency of scheduler in hertz
+    stim.create_scheduler(0xAA, 100);
 
     // Input which events will be added to the scheduler for updates
     stim.add_events(channels);
 
     // Initialize a timer for how often to update
-    Timer timer(milliseconds(5), Timer::WaitMode::Hybrid);
-    timer.set_acceptable_miss_rate(0.05);
+
     double t;
 
-    std::thread viz_thread([&stim](){Visualizer visualizer(&stim);});
+    std::thread viz_thread([&stim](){
+        Visualizer visualizer(&stim);
+        visualizer.run();
+    });
 
     // VirtualStim vstim("COM10");
     // vstim.begin();
 
     // start sending stimulation to the board
     stim.begin();
+    // double t_last = 0.0;
+
+    Timer timer(milliseconds(50), Timer::WaitMode::Hybrid);
+    timer.set_acceptable_miss_rate(0.05);
 
     while(!stop){
         {
@@ -69,15 +75,19 @@ int main() {
             stim.write_amp(wrist,10+int(10*sin(t)));
 
             // command the stimulation patterns to be sent to the stim board
+
             stim.update();
+
         }
         t = timer.wait().as_seconds();
+        // mel::print(t-t_last);
+        // t_last = t;
     }
 
     // disable events, schedulers, boards, etc
     stim.disable();
 
-    viz_thread.join();
+    // viz_thread.join();
 
     return 0;
 }

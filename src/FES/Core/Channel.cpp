@@ -9,9 +9,10 @@ using namespace mel;
 
 namespace fes{
 
-    Channel::Channel(const std::string& name_, unsigned char channel_num_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_, unsigned char aspect_):
+    Channel::Channel(const std::string& name_, unsigned char channel_num_, unsigned char an_ca_nums_, unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_, unsigned char aspect_):
         name(name_),
         channel_num(channel_num_),
+        an_ca_nums(an_ca_nums_),
         max_amp(max_amp_),
         max_pw(max_pw_),
         ip_delay(ip_delay_),
@@ -38,7 +39,7 @@ namespace fes{
                                           ip_delay_bytes[0],      // IP delay (byte 1)
                                           ip_delay_bytes[1],      // IP delay (byte 2)
                                           ONE_TO_ONE,             // Aspect
-                                          AN_CA_1,                // Anode Cathode
+                                          an_ca_nums,                // Anode Cathode
                                           0x00 };                 // Checksum
 
         if(write_message(serial_handle_, setup_message, sizeof(setup_message)/sizeof(*setup_message), "Setting Up Channel")){

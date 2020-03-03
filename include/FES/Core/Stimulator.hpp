@@ -6,6 +6,7 @@
 #include <FES/Core/Channel.hpp>
 #include <FES/Utility/Utility.hpp>
 #include <Windows.h>
+#include <mutex>;
 
 namespace fes{
     class Stimulator {
@@ -21,7 +22,7 @@ namespace fes{
 
         std::string get_name();
 
-        bool create_scheduler(const unsigned char sync_msg, unsigned int duration);
+        bool create_scheduler(const unsigned char sync_msg, double frequency_);
 
         bool is_enabled();
 
@@ -55,20 +56,21 @@ namespace fes{
         std::vector<int> max_amplitudes;
         std::vector<int> max_pulsewidths;
         std::vector<std::string> channel_names;
+        std::mutex mtx;
 
     private:
         // variables for serial communication
         HANDLE hComm;
         DCB dcbSerialParams = {0};
 
-        mel::Time delay_time = mel::milliseconds(50);
+        mel::Time delay_time = mel::milliseconds(1);
 
         std::string name;
         std::string com_port;
         bool enabled;
         std::vector<Channel> channels;
         Scheduler scheduler;
-        mel::Time setup_time = mel::milliseconds(100);
+        mel::Time setup_time = mel::milliseconds(1);
 
         bool open_port();
 

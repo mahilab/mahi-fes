@@ -3,6 +3,7 @@
 #include "FES/Utility/Utility.hpp"
 #include "FES/Core/Channel.hpp"
 #include "MEL/Logging/Log.hpp"
+#include "MEL/Core/Timer.hpp"
 
 using namespace mel;
 namespace fes{
@@ -55,6 +56,7 @@ namespace fes{
     }
 
     void Event::set_amplitude(unsigned int amplitude_){
+        print(amplitude, amplitude_);
         if (amplitude_ > max_amplitude){
             amplitude = max_amplitude;
             LOG(Warning) << "Commanded too high of a amplitude on " << get_channel_name() << " channel. It was clamped to " << max_amplitude << ".";
@@ -100,8 +102,8 @@ namespace fes{
                                          (unsigned char)amplitude,   // Amplitude to update
                                          0x00,                       // Placeholder for other parameters
                                          0x00};                      // Checksum placeholder
-
-        if(write_message(hComm, edit_event_msg, sizeof(edit_event_msg)/sizeof(*edit_event_msg), "NONE")){
+        
+        if(bool success = write_message(hComm, edit_event_msg, sizeof(edit_event_msg)/sizeof(*edit_event_msg), "NONE")){
             return true;
         }
         else{

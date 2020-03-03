@@ -52,6 +52,14 @@ namespace fes{
             return false;
         }
         else{
+            // for (auto i = 0; i < message_size_; i++){
+            //     char char_buff[4];
+            //     sprintf(char_buff, "0x%02X", (unsigned int)message_[i]);
+            //     std::cout << char_buff;
+            //     if(i != (message_size_-1)) std::cout << ", ";
+            //     else std::cout << std::endl;
+            // }
+            
             if (log_message) {
                 LOG(Info) << activity << " was Successful.";
             }
