@@ -1,9 +1,8 @@
 #include "Windows.h"
-#include <MEL/Logging/Log.hpp>
 #include <vector>
-#include <MEL/Core/Timer.hpp>
+#include <Mahi/Util.hpp>
 
-using namespace mel;
+using namespace mahi::util;
 
 namespace fes{
     // checksum is a function that preforms checksums of all of the unsigned char arrays used in this code

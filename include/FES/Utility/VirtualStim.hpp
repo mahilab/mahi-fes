@@ -2,16 +2,12 @@
 
 #include <Windows.h>
 #include <string>
-#include <MEL/Logging/Log.hpp>
-#include <mahi/gui.hpp>
+#include <Mahi/Util.hpp>
+#include <Mahi/Gui.hpp>
 #include <thread>
-#include <MEL/Utility/RingBuffer.hpp>
-
-using namespace mahi::gui;
-using namespace mel;
 
 namespace fes{
-    class VirtualStim : public Application{
+    class VirtualStim : public mahi::gui::Application{
     private:
         struct SerialMessage{
             std::vector<unsigned char> message;
@@ -47,7 +43,7 @@ namespace fes{
         SerialMessage event_edit_4_message = {std::vector<unsigned char> {}, "Edit Event 4", 0.0, 0};
         SerialMessage unknown_message = {std::vector<unsigned char> {}, "Unkown", 0.0, 0};
         
-        RingBuffer<SerialMessage> recent_messages;
+        mahi::util::RingBuffer<SerialMessage> recent_messages;
         std::vector<SerialMessage> recent_feed;
         
         

@@ -9,14 +9,12 @@
 #include <mutex>
 #include <deque>
 #include <iostream>
-#include <MEL/Core/Time.hpp>
-#include <MEL/Core/Timer.hpp>
-#include <MEL/Math.hpp>
+#include <Mahi/Util.hpp>
 #include <thread>
 #include <atomic>
 #include <FES/Utility/Visualizer.hpp>
 
-
+using namespace mahi::util;
 using namespace mahi::gui;
 using namespace fes;
 
@@ -47,8 +45,8 @@ int main(int argc, char const *argv[])
     stim.add_events(channels);
 
     std::mutex mtx;
-    mel::Timer control_timer(mel::milliseconds(50));
-    mel::Time current_t = mel::Time::Zero;
+    Timer control_timer(milliseconds(50));
+    Time current_t = Time::Zero;
 
     stim.begin();
 

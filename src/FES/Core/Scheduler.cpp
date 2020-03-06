@@ -1,9 +1,8 @@
 #include <FES/Core/Scheduler.hpp>
-#include <MEL/Logging/Log.hpp>
 #include <FES/Utility/Utility.hpp>
-#include <MEL/Core/Timer.hpp>
+#include <Mahi/Util.hpp>
 
-using namespace mel;
+using namespace mahi::util;
 
 namespace fes{
     Scheduler::Scheduler():
@@ -112,9 +111,9 @@ namespace fes{
     }
 
     void Scheduler::disable(){
-        enabled = false;
-
         halt_scheduler();
+        
+        enabled = false;
 
         for (auto event = events.begin(); event != events.end(); event++){
             event->delete_event();

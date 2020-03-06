@@ -1,15 +1,12 @@
 #include <FES/Core/Stimulator.hpp>
 #include <deque>
-#include <MEL/Core/Time.hpp>
-#include <MEL/Core/Timer.hpp>
+#include <Mahi/Util.hpp>
 #include <mutex>
 #include <thread>
-#include <mahi/gui.hpp>
-
-using namespace mahi::gui;
+#include <Mahi/Gui.hpp>
 
 namespace fes{
-    class Visualizer : public Application{
+    class Visualizer : public mahi::gui::Application{
     private:
         ImGuiInputTextFlags enabled_flags = 0;
         std::thread viz_thread;
@@ -22,7 +19,7 @@ namespace fes{
         std::deque<bool> enabled = {false, false, false, false, false, false, false, false};
         ImGui::PlotInterface plot_interface;
         std::vector<ImGui::PlotItem> items;
-        mel::Clock elapse_clock;
+        mahi::util::Clock elapse_clock;
         std::vector<Channel> channels;
         bool open = true;
         std::mutex mtx;
@@ -38,7 +35,7 @@ namespace fes{
         Visualizer(Stimulator *stimulator_);
         ~Visualizer();
 
-        void roll_point(ImGui::PlotItem& item, mel::Time t, int pos);
+        void roll_point(ImGui::PlotItem& item, mahi::util::Time t, int pos);
 
         void update();
 

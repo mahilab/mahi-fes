@@ -1,11 +1,10 @@
 #include <FES/Core/Channel.hpp>
 #include <FES/Utility/Utility.hpp>
-#include <MEL/Core/Console.hpp>
-#include <MEL/Logging/Log.hpp>
+#include <Mahi/Util.hpp>
 #include <Windows.h>
 #include <tchar.h>
 
-using namespace mel;
+using namespace mahi::util;
 
 namespace fes{
 
@@ -44,7 +43,7 @@ namespace fes{
 
         if(write_message(serial_handle_, setup_message, sizeof(setup_message)/sizeof(*setup_message), "Setting Up Channel")){
             // Sleep for delay time to allow the board to process
-            mel::sleep(delay_time_);
+            sleep(delay_time_);
             return true;
         }
         else{

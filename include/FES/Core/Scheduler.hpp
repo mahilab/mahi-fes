@@ -3,7 +3,7 @@
 #include <vector>
 #include <FES/Core/Channel.hpp>
 #include <FES/Core/Event.hpp>
-#include <MEL/Core/Time.hpp>
+#include <Mahi/Util.hpp>
 
 namespace fes{
     class Scheduler{
@@ -22,7 +22,7 @@ namespace fes{
         Scheduler();
         ~Scheduler();
 
-        bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration, mel::Time setup_time);
+        bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration, mahi::util::Time setup_time);
         
         bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
 

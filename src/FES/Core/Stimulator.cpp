@@ -2,10 +2,7 @@
 #include <FES/Core/Channel.hpp>
 #include <FES/Core/Event.hpp>
 #include <FES/Utility/Utility.hpp>
-#include <MEL/Core/Console.hpp>
-#include <MEL/Logging/Log.hpp>
-#include <MEL/Core/Timer.hpp>
-#include <MEL/Utility/System.hpp>
+#include <Mahi/Util.hpp>
 #include <Windows.h>
 #include <tchar.h>
 #include <string>
@@ -13,7 +10,7 @@
 #include <locale>
 #include <mutex>
 
-using namespace mel;
+using namespace mahi::util;
 
 namespace fes{
     Stimulator::Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_):

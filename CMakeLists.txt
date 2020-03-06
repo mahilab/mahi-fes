@@ -1,12 +1,24 @@
 cmake_minimum_required(VERSION 3.13)
 
 # create your C++ project
-project(FES VERSION 0.1.0 LANGUAGES CXX)
+project(fes VERSION 0.1.0 LANGUAGES CXX)
 
 # find MEL::MEL and all available MEL::xxx modules
-find_package(MEL REQUIRED)
+# find_package(MEL REQUIRED)
 
-add_subdirectory("mahi-gui")
+include(FetchContent)
+
+# add_subdirectory("mahi-gui")
+FetchContent_Declare(mahi-gui GIT_REPOSITORY https://github.com/mahilab/mahi-gui.git)
+FetchContent_MakeAvailable(mahi-gui)
+
+# FetchContent_Declare(mel 
+#                     GIT_REPOSITORY https://github.com/mahilab/MEL.git 
+#                     GIT_TAG origin/cmake_edits)
+# FetchContent_MakeAvailable(mel)
+
+FetchContent_Declare(mahi-util GIT_REPOSITORY https://github.com/mahilab/mahi-util.git)
+FetchContent_MakeAvailable(mahi-util)
 
 # add your include directories
 include_directories("include")
@@ -32,7 +44,7 @@ add_executable(test_stim
 # link your app to MEL libaries
 target_link_libraries(test_stim 
     mahi::gui
-    MEL::MEL 
+    mahi::util
 )
 
 # create an app from your source files
@@ -54,7 +66,7 @@ add_executable(ex_visualization
 # link your app to MEL libaries
 target_link_libraries(ex_visualization 
     mahi::gui 
-    MEL::MEL
+    mahi::util
 )
 
 
@@ -65,6 +77,6 @@ add_executable(ex_virtual_stim
 )
 
 target_link_libraries(ex_virtual_stim 
-    MEL::MEL
+    mahi::util
     mahi::gui
 )

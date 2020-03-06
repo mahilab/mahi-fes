@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <MEL/Core/Time.hpp>
+#include <Mahi/Util.hpp>
 #include <string>
 
 namespace fes{
@@ -37,7 +37,7 @@ namespace fes{
         
         ~Channel();
 
-        bool setup_channel(HANDLE serial_handle_, mel::Time delay_time_);
+        bool setup_channel(HANDLE serial_handle_, mahi::util::Time delay_time_);
 
         unsigned int get_max_amplitude();
 

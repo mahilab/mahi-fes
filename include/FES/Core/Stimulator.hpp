@@ -6,7 +6,7 @@
 #include <FES/Core/Channel.hpp>
 #include <FES/Utility/Utility.hpp>
 #include <Windows.h>
-#include <mutex>;
+#include <mutex>
 
 namespace fes{
     class Stimulator {
@@ -63,14 +63,14 @@ namespace fes{
         HANDLE hComm;
         DCB dcbSerialParams = {0};
 
-        mel::Time delay_time = mel::milliseconds(1);
+        mahi::util::Time delay_time = mahi::util::milliseconds(1);
 
         std::string name;
         std::string com_port;
         bool enabled;
         std::vector<Channel> channels;
         Scheduler scheduler;
-        mel::Time setup_time = mel::milliseconds(1);
+        mahi::util::Time setup_time = mahi::util::milliseconds(1);
 
         bool open_port();
 

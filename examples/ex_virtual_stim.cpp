@@ -1,8 +1,7 @@
 #include <FES/Utility/VirtualStim.hpp>
-#include <MEL/Core/Console.hpp>
-#include <MEL/Core/Timer.hpp>
+#include <Mahi/Util.hpp>
 
-using namespace mel;
+using namespace mahi::util;
 using namespace fes;
 
 // create global stop variable CTRL-C handler function

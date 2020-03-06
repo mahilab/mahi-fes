@@ -2,10 +2,11 @@
 #include "FES/Core/Stimulator.hpp"
 #include "FES/Utility/Utility.hpp"
 #include "FES/Core/Channel.hpp"
-#include "MEL/Logging/Log.hpp"
-#include "MEL/Core/Timer.hpp"
+// #include "MEL/Logging/Log.hpp"
+// #include "MEL/Core/Timer.hpp"
+#include <Mahi/Util.hpp>
 
-using namespace mel;
+using namespace mahi::util;
 namespace fes{
 
     Event::Event(HANDLE& hComm_, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_, unsigned int pulse_width_, unsigned int amplitude_, unsigned char event_type_, unsigned char priority_, unsigned char zone_):
@@ -56,7 +57,6 @@ namespace fes{
     }
 
     void Event::set_amplitude(unsigned int amplitude_){
-        print(amplitude, amplitude_);
         if (amplitude_ > max_amplitude){
             amplitude = max_amplitude;
             LOG(Warning) << "Commanded too high of a amplitude on " << get_channel_name() << " channel. It was clamped to " << max_amplitude << ".";

@@ -1,14 +1,13 @@
 #include <FES/Utility/Utility.hpp>
 #include <FES/Core/Stimulator.hpp>
-#include <FES/Core/Muscle.hpp>
-#include <MEL/Core/Console.hpp>
-#include <MEL/Core/Timer.hpp>
+#include <FES/Core/Event.hpp>
+#include <Mahi/Util.hpp>
 #include <thread>
 #include <mutex>
 #include <FES/Utility/Visualizer.hpp>
 #include <FES/Utility/VirtualStim.hpp>
 
-using namespace mel;
+using namespace mahi::util;
 using namespace fes;
 
 // create global stop variable CTRL-C handler function

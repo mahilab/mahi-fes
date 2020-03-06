@@ -5,10 +5,11 @@
 #include <mahi/gui.hpp>
 #include <thread>
 #include <mutex>
-#include <MEL/Core/Clock.hpp>
+#include <Mahi/Util.hpp>
 
 using namespace fes;
-using namespace mel;
+using namespace mahi::util;
+
 
 VirtualStim::VirtualStim(const std::string& com_port_):
 // Application(1300,800,"Stimulator Visualization"),

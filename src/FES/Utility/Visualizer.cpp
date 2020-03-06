@@ -5,6 +5,7 @@
 
 using namespace fes;
 using namespace mahi::gui;
+using namespace mahi::util;
 
 Visualizer::Visualizer(Stimulator *stimulator_) : Application(),
     stimulator(stimulator_),
@@ -39,7 +40,7 @@ Visualizer::~Visualizer(){
     viz_thread.join();
 }
 
-void Visualizer::roll_point(ImGui::PlotItem& item, mel::Time t, int pos) {
+void Visualizer::roll_point(ImGui::PlotItem& item, Time t, int pos) {
     float tmod = float(fmod(t.as_seconds(), 10));
     if (!item.data.empty() && tmod < item.data.back().x)
         item.data.clear();
@@ -131,10 +132,10 @@ void Visualizer::update(){
 
     for (auto i = 0; i < num_channels; i++){
         // roll_point(items[i], elapse_clock.get_elapsed_time(), amp[i]);
-        ImGui::PlotItemBufferPoint(items[i], elapse_clock.get_elapsed_time().as_seconds(), amp[i],20000);
+        ImGui::PlotItemBufferPoint(items[i], (float)elapse_clock.get_elapsed_time().as_seconds(), amp[i],20000);
     }
-    plot_interface.xAxis.minimum = elapse_clock.get_elapsed_time().as_seconds() - 10;
-    plot_interface.xAxis.maximum = (float)time();
+    plot_interface.xAxis.minimum = (float)elapse_clock.get_elapsed_time().as_seconds() - 10;
+    plot_interface.xAxis.maximum = (float)elapse_clock.get_elapsed_time().as_seconds();
     
     ImGui::EndGroup();
     ImGui::SameLine();
