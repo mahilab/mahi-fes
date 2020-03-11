@@ -131,7 +131,13 @@ void Visualizer::update(){
         }
 
     for (auto i = 0; i < num_channels; i++){
+<<<<<<< HEAD
         ImGui::PlotItemBufferPoint(items[i], (float)elapse_clock.get_elapsed_time().as_seconds(), amp[i],20000);
+=======
+        // roll_point(items[i], elapse_clock.get_elapsed_time(), amp[i]);
+        // ImGui::PlotItemBufferPoint(items[i], static_cast<float>(elapse_clock.get_elapsed_time().as_seconds()), amp[i],20000);
+        ImGui::PlotItemBufferPoint(items[i], time().as_seconds(), amp[i],20000);
+>>>>>>> added message classes
     }
     plot_interface.xAxis.minimum = (float)elapse_clock.get_elapsed_time().as_seconds() - 10;
     plot_interface.xAxis.maximum = (float)elapse_clock.get_elapsed_time().as_seconds();

@@ -38,7 +38,7 @@ namespace fes{
                                           ip_delay_bytes[0],      // IP delay (byte 1)
                                           ip_delay_bytes[1],      // IP delay (byte 2)
                                           ONE_TO_ONE,             // Aspect
-                                          an_ca_nums,                // Anode Cathode
+                                          an_ca_nums,             // Anode Cathode
                                           0x00 };                 // Checksum
 
         if(write_message(serial_handle_, setup_message, sizeof(setup_message)/sizeof(*setup_message), "Setting Up Channel")){
