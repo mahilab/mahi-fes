@@ -14,7 +14,7 @@ bool handler(CtrlEvent event) {
 int main(){
     register_ctrl_handler(handler);
 
-    VirtualStim vstim("COM10");
+    VirtualStim vstim("COM5");
     vstim.begin();
     return 0;
 }

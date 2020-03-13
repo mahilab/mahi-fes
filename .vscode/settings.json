@@ -81,6 +81,8 @@
         "forward_list": "cpp",
         "mutex": "cpp",
         "numeric": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cstdarg": "cpp",
+        "optional": "cpp"
     }
 }

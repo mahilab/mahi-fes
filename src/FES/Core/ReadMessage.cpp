@@ -8,5 +8,4 @@ ReadMessage::ReadMessage(std::vector<unsigned char> message)
         m_size = m_message.size();
         m_checksum = m_message.back();
     }
-
 } // namespace fes
