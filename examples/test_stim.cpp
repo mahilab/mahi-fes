@@ -47,7 +47,7 @@ int main() {
 
     // Initialize a timer for how often to update
 
-    double t;
+    double t(0);
 
     std::thread viz_thread([&stim](){
         Visualizer visualizer(&stim);
