@@ -37,7 +37,7 @@ int main() {
     channels.push_back(wrist);
     
     // Create stim board with a name, comport, and channels to add
-    Stimulator stim("UECU Board", "COM5", channels, channels.size());
+    Stimulator stim("UECU Board", "COM9", channels, channels.size());
 
     // Initialize scheduler with the sync character and frequency of scheduler in hertz
     stim.create_scheduler(0xAA, 100);
@@ -47,7 +47,7 @@ int main() {
 
     // Initialize a timer for how often to update
 
-    double t;
+    double t(0.0);
 
     std::thread viz_thread([&stim](){
         Visualizer visualizer(&stim);

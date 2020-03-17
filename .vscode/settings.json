@@ -83,6 +83,7 @@
         "numeric": "cpp",
         "variant": "cpp",
         "cstdarg": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "set": "cpp"
     }
 }
