@@ -2,8 +2,7 @@
 #include "FES/Core/Stimulator.hpp"
 #include "FES/Utility/Utility.hpp"
 #include "FES/Core/Channel.hpp"
-// #include "MEL/Logging/Log.hpp"
-// #include "MEL/Core/Timer.hpp"
+#include "FES/Core/WriteMessage.hpp"
 #include <Mahi/Util.hpp>
 
 using namespace mahi::util;
@@ -33,22 +32,24 @@ namespace fes{
     bool Event::create_event(){
         std::vector<unsigned char> delay_time_chars = int_to_twobytes(delay_time);
         
-        unsigned char create_event[] = {DEST_ADR,                   // Destination
-                                        SRC_ADR,                    // Source  
-                                        CREATE_EVENT_MSG,           // Msg type
-                                        CR_EVT_LEN,                 // Message length
-                                        schedule_id,                // Schedule ID  
-                                        delay_time_chars[0],        // Delay time (byte 1)
-                                        delay_time_chars[1],        // Delay time (byte 2)
-                                        priority,                   // priority (default none)
-                                        STIM_EVENT,                 // Event type
-                                        channel.get_channel_num(),  // Channel number
-                                        (unsigned char)pulse_width, // Pulse Width
-                                        (unsigned char)amplitude,   // Amplitude
-                                        zone,                       // Zone
-                                        0x00};                      // Checksum Placeholder
+        std::vector<unsigned char> create_event = {DEST_ADR,                   // Destination
+                                                   SRC_ADR,                    // Source  
+                                                   CREATE_EVENT_MSG,           // Msg type
+                                                   CR_EVT_LEN,                 // Message length
+                                                   schedule_id,                // Schedule ID  
+                                                   delay_time_chars[0],        // Delay time (byte 1)
+                                                   delay_time_chars[1],        // Delay time (byte 2)
+                                                   priority,                   // priority (default none)
+                                                   STIM_EVENT,                 // Event type
+                                                   channel.get_channel_num(),  // Channel number
+                                                   (unsigned char)pulse_width, // Pulse Width
+                                                   (unsigned char)amplitude,   // Amplitude
+                                                   zone,                       // Zone
+                                                   0x00};                      // Checksum Placeholder
 
-        if(write_message(hComm, create_event, sizeof(create_event)/sizeof(*create_event), "Creating Event")){
+        WriteMessage create_event_message(create_event);
+
+        if(create_event_message.write(hComm, "Creating Event")){
             return true;
         }
         else{
@@ -93,17 +94,19 @@ namespace fes{
     }
 
     bool Event::update(){
-        unsigned char edit_event_msg[] = {DEST_ADR,                  // Destination
-                                         SRC_ADR,                    // Source
-                                         CHANGE_EVENT_PARAMS_MSG,    // Msg type
-                                         CHANGE_EVENT_PARAMS_LEN,    // Msg len
-                                         event_id,                   // Event ID
-                                         (unsigned char)pulse_width, // Pulsewidth to update
-                                         (unsigned char)amplitude,   // Amplitude to update
-                                         0x00,                       // Placeholder for other parameters
-                                         0x00};                      // Checksum placeholder
+        std::vector<unsigned char> edit_event = {DEST_ADR,                  // Destination
+                                                 SRC_ADR,                    // Source
+                                                 CHANGE_EVENT_PARAMS_MSG,    // Msg type
+                                                 CHANGE_EVENT_PARAMS_LEN,    // Msg len
+                                                 event_id,                   // Event ID
+                                                 (unsigned char)pulse_width, // Pulsewidth to update
+                                                 (unsigned char)amplitude,   // Amplitude to update
+                                                 0x00,                       // Placeholder for other parameters
+                                                 0x00};                      // Checksum placeholder
         
-        if(bool success = write_message(hComm, edit_event_msg, sizeof(edit_event_msg)/sizeof(*edit_event_msg), "NONE")){
+        WriteMessage edit_event_message(edit_event);
+
+        if(edit_event_message.write(hComm, "NONE")){
             return true;
         }
         else{
@@ -112,14 +115,16 @@ namespace fes{
     }
 
     bool Event::delete_event(){
-        unsigned char del_evt_message[] = { DEST_ADR,         // Destination
-                                            SRC_ADR,          // Source
-                                            DELETE_EVENT_MSG, // Msg type
-                                            DELETE_EVENT_LEN, // Msg len
-                                            event_id,         // Event ID
-                                            0x00 };           // Checksum placeholder
+        std::vector<unsigned char> del_evt = {DEST_ADR,         // Destination
+                                              SRC_ADR,          // Source
+                                              DELETE_EVENT_MSG, // Msg type
+                                              DELETE_EVENT_LEN, // Msg len
+                                              event_id,         // Event ID
+                                              0x00 };           // Checksum placeholder
 
-        if(write_message(hComm, del_evt_message, sizeof(del_evt_message)/sizeof(*del_evt_message), "Deleting Event")){
+        WriteMessage del_evt_message(del_evt);
+
+        if(del_evt_message.write(hComm, "Deleting Event")){
             return true;
         }
         else{

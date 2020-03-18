@@ -131,7 +131,7 @@ void Visualizer::update(){
         }
 
     for (auto i = 0; i < num_channels; i++){
-        ImGui::PlotItemBufferPoint(items[i], time().as_seconds(), amp[i],20000);
+        ImGui::PlotItemBufferPoint(items[i], static_cast<float>(time().as_seconds()), static_cast<float>(amp[i]),20000);
     }
     plot_interface.xAxis.minimum = (float)elapse_clock.get_elapsed_time().as_seconds() - 10;
     plot_interface.xAxis.maximum = (float)elapse_clock.get_elapsed_time().as_seconds();

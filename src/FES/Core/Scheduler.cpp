@@ -1,5 +1,6 @@
 #include <FES/Core/Scheduler.hpp>
 #include <FES/Utility/Utility.hpp>
+#include <FES/Core/WriteMessage.hpp>
 #include <Mahi/Util.hpp>
 
 using namespace mahi::util;
@@ -25,16 +26,18 @@ namespace fes{
         std::vector<unsigned char> duration_chars = int_to_twobytes(duration);
 
         
-        unsigned char crt_sched[] = { DEST_ADR,            // Destination
-                                      SRC_ADR,             // Source  
-                                      CREATE_SCHEDULE_MSG, // Msg type
-                                      CREATE_SCHED_LEN,    // Message length
-                                      sync_char,           // sync character  
-                                      duration_chars[0],   // schedule duration (byte 1)  
-                                      duration_chars[1],   // schedule duration (byte 2)
-                                      0x00 };              // checksum placeholder
+        std::vector<unsigned char> crt_sched = {DEST_ADR,            // Destination
+                                                SRC_ADR,             // Source  
+                                                CREATE_SCHEDULE_MSG, // Msg type
+                                                CREATE_SCHED_LEN,    // Message length
+                                                sync_char,           // sync character  
+                                                duration_chars[0],   // schedule duration (byte 1)  
+                                                duration_chars[1],   // schedule duration (byte 2)
+                                                0x00 };              // checksum placeholder
 
-        if(write_message(hComm, crt_sched, sizeof(crt_sched)/sizeof(*crt_sched), "Creating Scheduler")){
+        WriteMessage crt_sched_message(crt_sched);
+
+        if(crt_sched_message.write(hComm, "Creating Scheduler")){
             enabled = true;
             sleep(setup_time);
             return true;
@@ -46,14 +49,16 @@ namespace fes{
 
     bool Scheduler::halt_scheduler(){
         if(is_enabled()){
-            unsigned char halt_message[] = {DEST_ADR, // Destination
-                                            SRC_ADR,  // Source
-                                            HALT_MSG, // Msg type
-                                            HALT_LEN, // Msg len
-                                            id,       // Schedule ID
-                                            0x00};    // Checksum placeholder
+            std::vector<unsigned char> halt = {DEST_ADR, // Destination
+                                               SRC_ADR,  // Source
+                                               HALT_MSG, // Msg type
+                                               HALT_LEN, // Msg len
+                                               id,       // Schedule ID
+                                               0x00};    // Checksum placeholder
 
-            return write_message(hComm, halt_message, sizeof(halt_message)/sizeof(*halt_message), "Schedule Closing");
+            WriteMessage halt_message(halt);
+
+            return halt_message.write(hComm, "Schedule Closing");
         }
         else{
             LOG(Error) << "Scheduler was not enabled. Nothing to disable";
@@ -89,14 +94,16 @@ namespace fes{
 
     bool Scheduler::send_sync_msg(){
         if (enabled){
-            unsigned char sync_msg1[] = { DEST_ADR,     // Destination
-                                          SRC_ADR,      // Source  
-                                          SYNC_MSG,     // Msg type
-                                          SYNC_MSG_LEN, // Message length
-                                          sync_char,    // sync character
-                                          0x00 };       // Checksum placeholder
+            std::vector<unsigned char> sync = {DEST_ADR,     // Destination
+                                               SRC_ADR,      // Source  
+                                               SYNC_MSG,     // Msg type
+                                               SYNC_MSG_LEN, // Message length
+                                               sync_char,    // sync character
+                                               0x00 };       // Checksum placeholder
 
-            if(write_message(hComm, sync_msg1, sizeof(sync_msg1)/sizeof(*sync_msg1), "Sending Sync Message")){
+            WriteMessage sync_message(sync);
+
+            if(sync_message.write(hComm, "Sending Sync Message")){
                 return true;
             }
             else{
@@ -119,14 +126,16 @@ namespace fes{
             event->delete_event();
         }
 
-        unsigned char del_sched[] = { DEST_ADR,            // Destination
-                                      SRC_ADR,             // Source  
-                                      DELETE_SCHEDULE_MSG, // Msg type
-                                      DEL_SCHED_LEN,       // Message length
-                                      id,                  // Schedule ID
-                                      0x00 };              // Checksum placeholder
+        std::vector<unsigned char> del_sched = {DEST_ADR,            // Destination
+                                                SRC_ADR,             // Source  
+                                                DELETE_SCHEDULE_MSG, // Msg type
+                                                DEL_SCHED_LEN,       // Message length
+                                                id,                  // Schedule ID
+                                                0x00 };              // Checksum placeholder
 
-        write_message(hComm, del_sched, sizeof(del_sched)/sizeof(*del_sched), "Closing Schedule");
+        WriteMessage del_sched_message(del_sched);
+
+        del_sched_message.write(hComm, "Closing Schedule");
     }
 
     void Scheduler::write_amp(Channel channel_, unsigned int amplitude_){
