@@ -45,24 +45,10 @@ int main() {
     // Input which events will be added to the scheduler for updates
     stim.add_events(channels);
 
-<<<<<<< HEAD
-    // std::thread viz_thread([&stim](){
-    //     Visualizer visualizer(&stim);
-    //     visualizer.run();
-    // });
-=======
-    // Initialize a timer for how often to update
-
-    double t(0.0);
-
     std::thread viz_thread([&stim](){
         Visualizer visualizer(&stim);
         visualizer.run();
     });
-
-    // VirtualStim vstim("COM10");
-    // vstim.begin();
->>>>>>> change to new message in channel
 
     // start sending stimulation to the board
     stim.begin();
