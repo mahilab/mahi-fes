@@ -37,7 +37,7 @@ Visualizer::Visualizer(Stimulator *stimulator_) : Application(),
     }
 
 Visualizer::~Visualizer(){
-    viz_thread.join();
+    
 }
 
 void Visualizer::roll_point(ImGui::PlotItem& item, Time t, int pos) {
@@ -102,12 +102,12 @@ void Visualizer::update(){
                 ImGui::PopItemWidth();
                 ImGui::PushItemWidth(75);
                 ImGui::InputInt(("##maxpw" + std::to_string(i)).c_str(), &max_pw[i], 1, 100, enabled_flags);
+                ImGui::PopItemWidth();
             ImGui::EndGroup();
-            ImGui::PopItemWidth();
+            
             if (!enabled[i]) ImGui::PopStyleVar();
             
             ImGui::SameLine(350);
-            ImGui::PopItemWidth();
             ImGui::PushItemWidth(180);
             ImGui::BeginGroup();
                 ImGui::PushItemWidth(45);
@@ -131,7 +131,6 @@ void Visualizer::update(){
         }
 
     for (auto i = 0; i < num_channels; i++){
-        // roll_point(items[i], elapse_clock.get_elapsed_time(), amp[i]);
         ImGui::PlotItemBufferPoint(items[i], (float)elapse_clock.get_elapsed_time().as_seconds(), amp[i],20000);
     }
     plot_interface.xAxis.minimum = (float)elapse_clock.get_elapsed_time().as_seconds() - 10;
@@ -170,7 +169,6 @@ void Visualizer::update(){
             } 
         }
     }
-    // stimulator->update();
 
     if (!open){
         quit();

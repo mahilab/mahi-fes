@@ -45,28 +45,20 @@ int main() {
     // Input which events will be added to the scheduler for updates
     stim.add_events(channels);
 
-    // Initialize a timer for how often to update
-
-    double t(0);
-
-    std::thread viz_thread([&stim](){
-        Visualizer visualizer(&stim);
-        visualizer.run();
-    });
-
-    // VirtualStim vstim("COM10");
-    // vstim.begin();
+    // std::thread viz_thread([&stim](){
+    //     Visualizer visualizer(&stim);
+    //     visualizer.run();
+    // });
 
     // start sending stimulation to the board
     stim.begin();
-    // double t_last = 0.0;
 
     Timer timer(milliseconds(50), Timer::WaitMode::Hybrid);
     timer.set_acceptable_miss_rate(0.05);
+    double t(0.0);
 
     while(!stop){
         {
-            // std::lock_guard<std::mutex> lock(mtx);
             // update the pulsewidth of each of the stimulation events
             stim.write_amp(bicep,40+int(10*sin(t)));
             stim.write_amp(tricep,30+int(10*sin(t)));
@@ -74,13 +66,10 @@ int main() {
             stim.write_amp(wrist,10+int(10*sin(t)));
 
             // command the stimulation patterns to be sent to the stim board
-
             stim.update();
 
         }
         t = timer.wait().as_seconds();
-        // mel::print(t-t_last);
-        // t_last = t;
     }
 
     // disable events, schedulers, boards, etc

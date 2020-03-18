@@ -92,11 +92,11 @@ std::vector<std::string> VirtualStim::fmt_msg(std::vector<unsigned char> message
     std::string temp_msg_int = "|";
     
     for (auto i = 0; i < message.size(); i++){
-        char char_buff[4];
+        char char_buff[20];
         sprintf(char_buff, "0x%02X", (unsigned int)message[i]);
         temp_msg_unc += char_buff;
 
-        char int_buff[4];
+        char int_buff[20];
         sprintf(int_buff, "%04i", (unsigned int)message[i]);
         temp_msg_int += int_buff;
         if(i == 3){
