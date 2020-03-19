@@ -81,7 +81,7 @@ bool Scheduler::add_event(Channel channel_, unsigned char event_type) {
     unsigned int num_events = (unsigned int)events.size();
 
     if (enabled) {
-        for (auto i = 0; i < num_events; i++) {
+        for (unsigned int i = 0; i < num_events; i++) {
             if (events[i].get_channel_num() == channel_.get_channel_num()) {
                 LOG(Error)
                     << "Did not add event because an event already existed with that channel.";

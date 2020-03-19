@@ -21,9 +21,11 @@
 #include <Mahi/Fes/Core/Channel.hpp>
 #include <Mahi/Fes/Core/Scheduler.hpp>
 #include <Mahi/Fes/Utility/Utility.hpp>
+#include <Mahi/Fes/Core/ReadMessage.hpp>
 #include <mutex>
 #include <string>
 #include <vector>
+#include <queue>
 
 namespace mahi {
 namespace fes {
@@ -83,12 +85,14 @@ private:
 
     mahi::util::Time delay_time = mahi::util::milliseconds(1);
 
-    std::string          name;
-    std::string          com_port;
-    bool                 enabled;
-    std::vector<Channel> channels;
-    Scheduler            scheduler;
-    mahi::util::Time     setup_time = mahi::util::milliseconds(1);
+    std::string             name;
+    std::string             com_port;
+    bool                    enabled;
+    std::vector<Channel>    channels;
+    Scheduler               scheduler;
+    mahi::util::Time        setup_time = mahi::util::milliseconds(1);
+    int                     inc_msg_count = 0;
+    std::queue<ReadMessage> inc_messages;
 
     bool open_port();
 
@@ -97,6 +101,10 @@ private:
     bool initialize_board();
 
     void close_stimulator();
+
+    void check_inc_messages();
+
+    void process_inc_messages();
 };
 }  // namespace fes
 }  // namespace mahi

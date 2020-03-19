@@ -17,10 +17,8 @@
 #include <Windows.h>
 #include <tchar.h>
 
-#include <Mahi/Fes/Core/Channel.hpp>
 #include <Mahi/Fes/Core/Event.hpp>
 #include <Mahi/Fes/Core/Stimulator.hpp>
-#include <Mahi/Fes/Utility/Utility.hpp>
 #include <Mahi/Util.hpp>
 #include <codecvt>
 #include <locale>
@@ -156,8 +154,8 @@ bool Stimulator::configure_port() {  // configure_port establishes the settings 
     }
 
     COMMTIMEOUTS timeouts                = {0};
-    timeouts.ReadIntervalTimeout         = 50;
-    timeouts.ReadTotalTimeoutConstant    = 50;
+    timeouts.ReadIntervalTimeout         = 10;
+    timeouts.ReadTotalTimeoutConstant    = 10;
     timeouts.ReadTotalTimeoutMultiplier  = 10;
     timeouts.WriteTotalTimeoutConstant   = 50;
     timeouts.WriteTotalTimeoutMultiplier = 10;
@@ -289,7 +287,9 @@ bool Stimulator::update() {
                 max_pulsewidths[i] = channels[i].get_max_pulse_width();
             }
         }
-        return scheduler.update();
+        bool success = scheduler.update();
+        check_inc_messages();
+        return success;
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not updating";
         return false;
@@ -341,5 +341,56 @@ std::vector<Channel> Stimulator::get_channels() { return channels; }
 bool Stimulator::is_enabled() { return enabled; }
 
 std::string Stimulator::get_name() { return name; }
+
+void Stimulator::check_inc_messages() {
+    while (true) {
+        DWORD         header_size = 4;
+        unsigned char msg_header[4];
+
+        DWORD dwBytesRead = 0;
+
+        if (!ReadFile(hComm, msg_header, header_size, &dwBytesRead, NULL)) {
+            LOG(Error) << "Could not read message header";
+        }
+        if (dwBytesRead != 0) {
+            DWORD body_size = (unsigned int)msg_header[3] + 1;
+
+            std::unique_ptr<unsigned char[]> msg_body(new unsigned char[body_size]);
+            if (!ReadFile(hComm, msg_body.get(), body_size, &dwBytesRead, NULL)) {
+                LOG(Error) << "Could not read message body";
+            } else {
+                if (msg_header[0] == (unsigned char)0x04 && msg_header[1] == (unsigned char)0x80) {
+                    inc_msg_count += 1;
+                    std::vector<unsigned char> msg;
+                    for (unsigned int i = 0; i < (header_size + body_size); i++) {
+                        if (i < header_size)
+                            msg.push_back(msg_header[i]);
+                        else
+                            msg.push_back(msg_body[i - header_size]);
+                    }
+                    ReadMessage received_msg(msg, inc_msg_count);
+                    inc_messages.push(received_msg);
+                }
+            }
+        } else {
+            break;
+        }
+    }
+    process_inc_messages();
+}
+
+void Stimulator::process_inc_messages() {
+    for (size_t i = 0; i < inc_messages.size(); i++) {
+        ReadMessage current_message = inc_messages.front();
+        inc_messages.pop();
+        std::cout << "Message: ";
+        for (size_t j = 0; j < current_message.get_size(); j++) {
+            std::cout << current_message.get_message()[j];
+            if (j == current_message.get_size())
+                std::cout << ", ";
+        }
+        std::cout << std::endl;
+    }
+}
 }  // namespace fes
 }  // namespace mahi

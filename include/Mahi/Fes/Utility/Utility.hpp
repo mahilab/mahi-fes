@@ -48,7 +48,7 @@ bool write_message(HANDLE hComm_, unsigned char* message_, const int message_siz
 #define SYNC_MSG                  0x1B
 #define EVENT_COMMAND_MSG         0x1C
 #define CHANNEL_SETUP_MSG         0x47
-#define EVENT_COMMAND_REPLY       0x49
+#define EVENT_COMMAND_REPLY_MSG   0x49
 
 // Predefined destination and sources addresses to be used for all communication
 #define DEST_ADR 0x04
