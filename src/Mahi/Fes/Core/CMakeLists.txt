@@ -1,0 +1,10 @@
+target_sources(fes
+    PRIVATE
+    Channel.cpp
+    Event.cpp
+    Message.cpp
+    ReadMessage.cpp
+    Scheduler.cpp
+    Stimulator.cpp
+    WriteMessage.cpp
+)

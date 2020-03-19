@@ -1,17 +1,17 @@
-#include <FES/Utility/VirtualStim.hpp>
+#include <Mahi/Fes/Utility/VirtualStim.hpp>
 #include <Mahi/Util.hpp>
 
 using namespace mahi::util;
-using namespace fes;
+using namespace mahi::fes;
 
 // create global stop variable CTRL-C handler function
 ctrl_bool stop(false);
-bool handler(CtrlEvent event) {
+bool      handler(CtrlEvent event) {
     stop = true;
     return true;
 }
 
-int main(){
+int main() {
     register_ctrl_handler(handler);
 
     VirtualStim vstim("COM10");

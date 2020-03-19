@@ -1,40 +1,38 @@
 // #define MAHI_GUI_NO_CONSOLE
-#include "mahi/gui.hpp"
-#include <FES/Core/Stimulator.hpp>
-#include <FES/Core/Channel.hpp>
-#include <FES/Core/Event.hpp>
-#include <FES/Core/Scheduler.hpp>
-#include <FES/Utility/Utility.hpp>
-#include <thread>
-#include <mutex>
+#include <Mahi/Fes/Core/Channel.hpp>
+#include <Mahi/Fes/Core/Event.hpp>
+#include <Mahi/Fes/Core/Scheduler.hpp>
+#include <Mahi/Fes/Core/Stimulator.hpp>
+#include <Mahi/Fes/Utility/Utility.hpp>
+#include <Mahi/Fes/Utility/Visualizer.hpp>
+#include <Mahi/Gui.hpp>
+#include <Mahi/Util.hpp>
+#include <atomic>
 #include <deque>
 #include <iostream>
-#include <Mahi/Util.hpp>
+#include <mutex>
 #include <thread>
-#include <atomic>
-#include <FES/Utility/Visualizer.hpp>
 
 using namespace mahi::util;
 using namespace mahi::gui;
-using namespace fes;
+using namespace mahi::fes;
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     // create channels of interest
     std::vector<Channel> channels;
 
-    Channel bicep  ("Bicep",             CH_1, AN_CA_1, 100, 250);
+    Channel bicep("Bicep", CH_1, AN_CA_1, 100, 250);
     channels.push_back(bicep);
 
-    Channel tricep ("Tricep",            CH_2, AN_CA_2, 100, 250);
+    Channel tricep("Tricep", CH_2, AN_CA_2, 100, 250);
     channels.push_back(tricep);
 
     Channel forearm("Forearm Pronation", CH_3, AN_CA_3, 100, 250);
     channels.push_back(forearm);
-    
-    Channel wrist  ("Wrist Flexion",     CH_4, AN_CA_4, 100, 250);
+
+    Channel wrist("Wrist Flexion", CH_4, AN_CA_4, 100, 250);
     channels.push_back(wrist);
-    
+
     // Create stim board with a name, comport, and channels to add
     Stimulator stim("UECU Board", "COM9", channels, channels.size());
 
@@ -45,19 +43,19 @@ int main(int argc, char const *argv[])
     stim.add_events(channels);
 
     std::mutex mtx;
-    Timer control_timer(milliseconds(50));
-    Time current_t = Time::Zero;
+    Timer      control_timer(milliseconds(50));
+    Time       current_t = Time::Zero;
 
     stim.begin();
 
-    std::thread viz_thread([&stim](){
+    std::thread viz_thread([&stim]() {
         Visualizer visualizer(&stim);
         visualizer.run();
     });
-    
+
     control_timer.restart();
-    
-    while (true){
+
+    while (true) {
         {
             // std::lock_guard<std::mutex> lock(mtx);
             // stim.write_amp(bicep,int(50+50*mel::sin(current_t.as_seconds())));
@@ -69,7 +67,6 @@ int main(int argc, char const *argv[])
     }
 
     viz_thread.join();
-    
+
     return 0;
 }
-
