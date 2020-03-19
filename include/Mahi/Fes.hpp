@@ -23,6 +23,6 @@
 #include <Mahi/Fes/Core/Scheduler.hpp>
 #include <Mahi/Fes/Core/Stimulator.hpp>
 #include <Mahi/Fes/Core/WriteMessage.hpp>
-#include <Mahi/Fes/Utility.hpp>
-#include <Mahi/Fes/VirtualStim.hpp>
-#include <Mahi/Fes/Visualizer.hpp>
+#include <Mahi/Fes/Utility/Utility.hpp>
+#include <Mahi/Fes/Utility/VirtualStim.hpp>
+#include <Mahi/Fes/Utility/Visualizer.hpp>

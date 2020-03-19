@@ -1,8 +1,4 @@
-#include <Mahi/Fes/Core/Event.hpp>
-#include <Mahi/Fes/Core/Stimulator.hpp>
-#include <Mahi/Fes/Utility/Utility.hpp>
-#include <Mahi/Fes/Utility/VirtualStim.hpp>
-#include <Mahi/Fes/Utility/Visualizer.hpp>
+#include <Mahi/Fes.hpp>
 #include <Mahi/Util.hpp>
 #include <mutex>
 #include <thread>

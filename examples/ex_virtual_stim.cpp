@@ -1,4 +1,4 @@
-#include <Mahi/Fes/Utility/VirtualStim.hpp>
+#include <Mahi/Fes.hpp>
 #include <Mahi/Util.hpp>
 
 using namespace mahi::util;
