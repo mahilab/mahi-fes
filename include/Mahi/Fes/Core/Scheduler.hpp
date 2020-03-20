@@ -42,7 +42,7 @@ public:
     bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration,
                           mahi::util::Time setup_time);
 
-    bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
+    bool add_event(Channel channel_, mahi::util::Time sleep_time, unsigned char event_type = STIM_EVENT);
 
     bool edit_event(Channel channel_);
 
@@ -51,6 +51,8 @@ public:
     void disable();
 
     unsigned char get_id();
+    
+    void set_id(unsigned char sched_id_);
 
     void write_amp(Channel channel_, unsigned int amplitude_);
 

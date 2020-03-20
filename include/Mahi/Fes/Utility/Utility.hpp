@@ -30,6 +30,8 @@ std::vector<unsigned char> int_to_twobytes(int input_int);
 bool write_message(HANDLE hComm_, unsigned char* message_, const int message_size_,
                    const std::string& activity);
 
+std::string print_as_hex(unsigned char num);
+
 // Message commands for sending serial packets
 #define TRIGGER_SETUP_MSG         0x03
 #define HALT_MSG                  0x04

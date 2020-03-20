@@ -24,37 +24,44 @@ namespace mahi {
 namespace fes {
 
 ReadMessage::ReadMessage(std::vector<unsigned char> message) {
-    m_message  = message;
-    m_size     = m_message.size();
-    m_checksum = m_message.back();
-    if (m_size >=2){
-        m_read_message_type = m_message[2];
-    }
-    else{
-        m_read_message_type = 0x00;
-    }
+    m_message           = message;
+    m_size              = message.size();
+    m_checksum          = m_size > 0 ? m_message.back() : 0x00;
+    m_read_message_type = m_size > 1 ? m_message[6] : 0x00;
+    std::vector<unsigned char> data_vec;
+    if(m_size > 2) std::copy(m_message.begin() + 8, m_message.begin() + m_size - 2, std::back_inserter(data_vec));
+    m_data = data_vec;
 }
 
 ReadMessage::ReadMessage(std::vector<unsigned char> message, size_t msg_count) {
-    m_message   = message;
-    m_size      = m_message.size();
-    m_checksum  = m_message.back();
-    m_msg_count = msg_count;
+    m_message           = message;
+    m_size              = m_message.size();
+    m_checksum          = m_size > 0 ? m_message.back() : 0x00;
+    m_read_message_type = m_size > 1 ? m_message[6] : 0x00;
+    m_msg_count         = msg_count;
+    std::vector<unsigned char> data_vec;
+    if(m_size > 2) std::copy(m_message.begin() + 8, m_message.begin() + m_size - 2, std::back_inserter(data_vec));
+    m_data = data_vec;
 }
 
-unsigned char ReadMessage::get_read_message_type(){ return m_read_message_type; }
+unsigned char ReadMessage::get_read_message_type() { return m_read_message_type; }
 
-bool ReadMessage::is_valid(){
-    if (calc_checksum() != m_checksum){
+bool ReadMessage::is_valid() {
+    if (calc_checksum() != m_checksum) {
         LOG(Error) << "Read checksum is wrong; message is likely invalid.";
         return false;
-    }
-    else if (!binary_search(valid_msg_types.begin(), valid_msg_types.end(),m_read_message_type)){
-        LOG(Error) << "Message type " << m_read_message_type << " is unknown. Cannot interpret message.";
+    } else if (!binary_search(valid_msg_types.begin(), valid_msg_types.end(),
+                              m_read_message_type)) {
+        LOG(Error) << "Message type " << m_read_message_type
+                   << " is unknown. Cannot interpret message.";
         return false;
     }
     return true;
-    
 }
+
+std::vector<unsigned char> ReadMessage::get_data(){
+    return m_data;
+}
+
 }  // namespace fes
 }  // namespace mahi

@@ -64,6 +64,8 @@ public:
 
     void set_pulsewidth(unsigned int pulse_width_);
 
+    void set_event_id(unsigned char event_id);
+
     unsigned int get_amplitude();
 
     unsigned int get_pulsewidth();

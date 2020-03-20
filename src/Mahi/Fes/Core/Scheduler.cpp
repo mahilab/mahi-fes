@@ -77,7 +77,7 @@ bool Scheduler::halt_scheduler() {
     }
 }
 
-bool Scheduler::add_event(Channel channel_, unsigned char event_type) {
+bool Scheduler::add_event(Channel channel_, Time sleep_time, unsigned char event_type) {
     unsigned int num_events = (unsigned int)events.size();
 
     if (enabled) {
@@ -94,7 +94,9 @@ bool Scheduler::add_event(Channel channel_, unsigned char event_type) {
 
         // add event to list of events
         events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(num_events + 1)));
-
+        
+        sleep(sleep_time);
+        
         return true;
     } else {
         LOG(Error) << "Scheduler is not yet enabled. ";
@@ -217,6 +219,8 @@ bool Scheduler::update() {
 size_t Scheduler::get_num_events() { return events.size(); }
 
 unsigned char Scheduler::get_id() { return id; }
+
+void Scheduler::set_id(unsigned char sched_id_) { id = sched_id_; }
 
 bool Scheduler::is_enabled() { return enabled; }
 }  // namespace fes

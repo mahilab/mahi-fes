@@ -19,6 +19,7 @@
 
 #include <Mahi/Fes/Core/Event.hpp>
 #include <Mahi/Fes/Core/Stimulator.hpp>
+#include <Mahi/Fes/Utility/Communication.hpp>
 #include <Mahi/Util.hpp>
 #include <codecvt>
 #include <locale>
@@ -288,7 +289,8 @@ bool Stimulator::update() {
             }
         }
         bool success = scheduler.update();
-        check_inc_messages();
+        // check_inc_messages();
+        read_all();
         return success;
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not updating";
@@ -305,7 +307,15 @@ bool Stimulator::create_scheduler(const unsigned char sync_msg, double frequency
     }
 
     if (is_enabled()) {
-        return scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
+        bool success = scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
+        ReadMessage scheduler_created_msg = wait_for_message(hComm, inc_messages);
+        for (size_t i = 0; i < scheduler_created_msg.get_data().size(); i++) {
+            std::cout << print_as_hex(scheduler_created_msg.get_data()[i]) << ", ";
+        }
+        std::cout <<std::endl;
+        scheduler.set_id(scheduler_created_msg.get_data()[0]);
+
+        return success;
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not creating scheduler";
         return false;
@@ -314,7 +324,9 @@ bool Stimulator::create_scheduler(const unsigned char sync_msg, double frequency
 
 bool Stimulator::add_event(Channel channel_, unsigned char event_type) {
     if (is_enabled()) {
-        return scheduler.add_event(channel_, event_type);
+        bool success = scheduler.add_event(channel_, delay_time, event_type);
+        // check_inc_messages();
+        return success;
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not adding event to scheduler";
         return false;
@@ -342,55 +354,30 @@ bool Stimulator::is_enabled() { return enabled; }
 
 std::string Stimulator::get_name() { return name; }
 
-void Stimulator::check_inc_messages() {
-    while (true) {
-        DWORD         header_size = 4;
-        unsigned char msg_header[4];
+void Stimulator::read_all() {
+    DWORD         msg_size = 1;
+    unsigned char msg[1];
+    bool          done       = false;
+    bool          first_pass = true;
 
-        DWORD dwBytesRead = 0;
-
-        if (!ReadFile(hComm, msg_header, header_size, &dwBytesRead, NULL)) {
-            LOG(Error) << "Could not read message header";
+    DWORD dwBytesRead = 0;
+    while (!done) {
+        if (!ReadFile(hComm, msg, msg_size, &dwBytesRead, NULL)) {
+            LOG(Error) << "Could not read message";
         }
         if (dwBytesRead != 0) {
-            DWORD body_size = (unsigned int)msg_header[3] + 1;
-
-            std::unique_ptr<unsigned char[]> msg_body(new unsigned char[body_size]);
-            if (!ReadFile(hComm, msg_body.get(), body_size, &dwBytesRead, NULL)) {
-                LOG(Error) << "Could not read message body";
-            } else {
-                if (msg_header[0] == (unsigned char)0x04 && msg_header[1] == (unsigned char)0x80) {
-                    inc_msg_count += 1;
-                    std::vector<unsigned char> msg;
-                    for (unsigned int i = 0; i < (header_size + body_size); i++) {
-                        if (i < header_size)
-                            msg.push_back(msg_header[i]);
-                        else
-                            msg.push_back(msg_body[i - header_size]);
-                    }
-                    ReadMessage received_msg(msg, inc_msg_count);
-                    inc_messages.push(received_msg);
-                }
+            if (first_pass) {
+                std::cout << "Message: ";
+                first_pass = false;
             }
+            char char_buff[20];
+            sprintf(char_buff, "0x%02X", (unsigned int)msg[0]);
+            std::cout << char_buff << ", ";
         } else {
-            break;
+            std::cout << std::endl;
+            done = true;
         }
     }
-    process_inc_messages();
 }
-
-void Stimulator::process_inc_messages() {
-    for (size_t i = 0; i < inc_messages.size(); i++) {
-        ReadMessage current_message = inc_messages.front();
-        inc_messages.pop();
-        std::cout << "Message: ";
-        for (size_t j = 0; j < current_message.get_size(); j++) {
-            std::cout << current_message.get_message()[j];
-            if (j == current_message.get_size())
-                std::cout << ", ";
-        }
-        std::cout << std::endl;
-    }
-}
-}  // namespace fes
-}  // namespace mahi
+} // namespace fes
+} // namespace mahi

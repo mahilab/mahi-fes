@@ -19,7 +19,9 @@
 #include <Mahi/Fes/Core/Stimulator.hpp>
 #include <Mahi/Fes/Core/WriteMessage.hpp>
 #include <Mahi/Fes/Utility/Utility.hpp>
+#include <Mahi/Fes/Utility/Communication.hpp>
 #include <Mahi/Util.hpp>
+#include <queue>
 
 using namespace mahi::util;
 
@@ -67,6 +69,14 @@ bool Event::create_event() {
     WriteMessage create_event_message(create_event);
 
     if (create_event_message.write(hComm, "Creating Event")) {
+        sleep(milliseconds(100));
+        std::queue<ReadMessage> inc_messages;
+        ReadMessage event_created_msg = wait_for_message(hComm, inc_messages);
+        for (size_t i = 0; i < event_created_msg.get_data().size(); i++) {
+            std::cout << print_as_hex(event_created_msg.get_data()[i]) << ", ";
+        }
+        std::cout <<std::endl;
+        set_event_id(event_created_msg.get_data()[0]);
         return true;
     } else {
         return false;
@@ -123,6 +133,10 @@ bool Event::update() {
     } else {
         return false;
     }
+}
+
+void Event::set_event_id(unsigned char event_id_){
+    event_id = event_id_;
 }
 
 bool Event::delete_event() {

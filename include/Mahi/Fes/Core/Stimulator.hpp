@@ -83,14 +83,14 @@ private:
     HANDLE hComm;
     DCB    dcbSerialParams = {0};
 
-    mahi::util::Time delay_time = mahi::util::milliseconds(1);
+    mahi::util::Time delay_time = mahi::util::milliseconds(100);
 
     std::string             name;
     std::string             com_port;
     bool                    enabled;
     std::vector<Channel>    channels;
     Scheduler               scheduler;
-    mahi::util::Time        setup_time = mahi::util::milliseconds(1);
+    // mahi::util::Time        setup_time = mahi::util::milliseconds(1);
     int                     inc_msg_count = 0;
     std::queue<ReadMessage> inc_messages;
 
@@ -102,9 +102,7 @@ private:
 
     void close_stimulator();
 
-    void check_inc_messages();
-
-    void process_inc_messages();
+    void read_all();
 };
 }  // namespace fes
 }  // namespace mahi

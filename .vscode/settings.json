@@ -84,6 +84,7 @@
         "variant": "cpp",
         "cstdarg": "cpp",
         "optional": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "queue": "cpp"
     }
 }

@@ -35,6 +35,12 @@ int checksum(unsigned char myarray[], int array_size) {
     return csum;
 }
 
+std::string print_as_hex(unsigned char num){
+    char char_buff[20];
+    sprintf(char_buff, "0x%02X", (unsigned int)num);
+    return std::string(char_buff);
+}
+
 std::vector<unsigned char> int_to_twobytes(int input_int) {
     // value to do comparison
     int byte_size = 256;
