@@ -13,12 +13,18 @@ public:
 
     size_t                     m_msg_count = 0;
     unsigned char              m_read_message_type;
+    std::vector<unsigned char> m_crc;
+
+    std::vector<unsigned char> calc_crc();
 
     std::vector<unsigned char> valid_msg_types = {ERROR_REPORT_MSG, EVENT_ERROR_MSG,
                                                   CREATE_SCHEDULE_REPLY_MSG, CREATE_EVENT_REPLY_MSG,
                                                   EVENT_COMMAND_REPLY_MSG};
 
     std::vector<unsigned char> get_data();
+
+    #define CRC_SEED 0xFFFF
+    #define CRC_POLY 0xA001
 
 private:
     std::vector<unsigned char> m_data;

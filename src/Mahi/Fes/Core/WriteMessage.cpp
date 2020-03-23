@@ -29,6 +29,20 @@ WriteMessage::WriteMessage(std::vector<unsigned char> message) {
     m_message[m_size - 1] = m_checksum;
 }
 
+unsigned char WriteMessage::calc_checksum() {
+    int sum = 0;
+    // sum of bytes
+    for (int i = 0; i < m_size - 1; i++) {
+        sum += m_message[i];
+    }
+    int csum1 = (0x00FF & sum);          // get just lower byte of the sum
+    int csum2 = (sum >> 8);              // get the carry byte of the sum (shift right by 8 bits)
+    int csum  = (csum1 + csum2) ^ 0xFF;  // add carry byte to lower byte and invert
+    return csum;
+}
+
+unsigned char WriteMessage::get_checksum() { return m_checksum; }
+
 bool WriteMessage::write(HANDLE hComm, const std::string& activity) {
     // dont log anything if the input string is "NONE"
     bool log_message = (activity.compare("NONE") != 0);
