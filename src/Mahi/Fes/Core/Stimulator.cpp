@@ -221,17 +221,17 @@ bool Stimulator::begin() {
     }
 }
 
-void Stimulator::write_amp(Channel channel_, unsigned int amp_) {
+void Stimulator::set_amp(Channel channel_, unsigned int amp_) {
     if (is_enabled()) {
-        scheduler.write_amp(channel_, amp_);
+        scheduler.set_amp(channel_, amp_);
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not writing amplitude";
     }
 }
 
-void Stimulator::write_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_) {
+void Stimulator::set_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_) {
     for (size_t i = 0; i < channels_.size(); i++) {
-        write_amp(channels_[i], amplitudes_[i]);
+        set_amp(channels_[i], amplitudes_[i]);
     }
 }
 
@@ -309,10 +309,10 @@ bool Stimulator::create_scheduler(const unsigned char sync_msg, double frequency
     if (is_enabled()) {
         bool success = scheduler.create_scheduler(hComm, sync_msg, duration, delay_time);
         ReadMessage scheduler_created_msg = wait_for_message(hComm, inc_messages);
-        for (size_t i = 0; i < scheduler_created_msg.get_data().size(); i++) {
-            std::cout << print_as_hex(scheduler_created_msg.get_data()[i]) << ", ";
-        }
-        std::cout <<std::endl;
+        // for (size_t i = 0; i < scheduler_created_msg.get_data().size(); i++) {
+            // std::cout << print_as_hex(scheduler_created_msg.get_data()[i]) << ", ";
+        // }
+        std::cout << print_as_hex(scheduler_created_msg.get_data()[0]) << std::endl;
         scheduler.set_id(scheduler_created_msg.get_data()[0]);
 
         return success;

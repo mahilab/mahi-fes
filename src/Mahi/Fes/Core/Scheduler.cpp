@@ -148,7 +148,7 @@ void Scheduler::disable() {
     del_sched_message.write(hComm, "Closing Schedule");
 }
 
-void Scheduler::write_amp(Channel channel_, unsigned int amplitude_) {
+void Scheduler::set_amp(Channel channel_, unsigned int amplitude_) {
     // loop over available events in the scheduler
     for (auto event = events.begin(); event != events.end(); event++) {
         // if the event is for the correct channel we are looking for, write the amplitude and exit

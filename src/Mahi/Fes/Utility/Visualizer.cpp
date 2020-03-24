@@ -170,7 +170,7 @@ void Visualizer::update() {
         std::lock_guard<std::mutex> lock(mtx);
         for (size_t i = 0; i < num_channels; i++) {
             if (enabled[i]) {
-                stimulator->write_amp(channels[i], amp[i]);
+                stimulator->set_amp(channels[i], amp[i]);
                 stimulator->write_pw(channels[i], pw[i]);
                 stimulator->update_max_amp(channels[i], max_amp[i]);
                 stimulator->update_max_pw(channels[i], max_pw[i]);

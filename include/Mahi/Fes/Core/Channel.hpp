@@ -36,39 +36,40 @@ namespace fes {
 
 // definition of aspect ratios
 #define ONE_TO_ONE 0x11
-// #define TWO_TO_ONE 0x21
+#define TWO_TO_ONE 0x21
 
 class Channel {
-private:
-    std::string   name;
-    unsigned char aspect;
-    unsigned char channel_num;
-    unsigned char an_ca_nums;
-    unsigned int  max_amp;   // maximum amplitude
-    unsigned int  max_pw;    // maximum pulsewidth
-    unsigned int  ip_delay;  // interphase delay
-    unsigned char event_id;
-
 public:
+    /// Channel constructor
     Channel(const std::string& name_, unsigned char channel_num_, unsigned char an_ca_nums_,
             unsigned int max_amp_, unsigned int max_pw_, unsigned int ip_delay_ = 100,
             unsigned char aspect_ = ONE_TO_ONE);
-
+    /// Channel destructor
     ~Channel();
-
+    /// writes the channel setup command to the UECU given the constructor parameters.
     bool setup_channel(HANDLE serial_handle_, mahi::util::Time delay_time_);
-
+    /// return the max amplitude allowed by the channel
     unsigned int get_max_amplitude();
-
+    /// return the max pulsewidth allowed by the channel
     unsigned int get_max_pulse_width();
-
+    /// return the channel number of the channel
+    unsigned char get_channel_num();
+    /// return the name of the channel
+    std::string get_channel_name();
+    /// set the maximum allowed amplitude for the channel
     void set_max_amplitude(unsigned int);
-
+    /// set the maximum allowed pulsewidth for the channel
     void set_max_pulse_width(unsigned int);
 
-    unsigned char get_channel_num();
-
-    std::string get_channel_name();
+private:
+    std::string   name;         // name of the channel-this is used for changing channel parameters
+    unsigned char aspect;       // the aspect ratio for the channel: (first 4 bits)/(second 4 bits)
+    unsigned char channel_num;  // channel number as #defined in this file
+    unsigned char an_ca_nums;   // anode cathode channel numbers
+    unsigned int  max_amp;      // maximum amplitude
+    unsigned int  max_pw;       // maximum pulsewidth
+    unsigned int  ip_delay;     // interphase delay
+    unsigned char event_id;     // event id as returned by the stimulator
 };
 }  // namespace fes
 }  // namespace mahi

@@ -53,8 +53,8 @@ int main(int argc, char const *argv[]) {
     while (true) {
         {
             // std::lock_guard<std::mutex> lock(mtx);
-            // stim.write_amp(bicep,int(50+50*mel::sin(current_t.as_seconds())));
-            // stim.write_amp(tricep,int(50+50*mel::cos(current_t.as_seconds())));
+            // stim.set_amp(bicep,int(50+50*mel::sin(current_t.as_seconds())));
+            // stim.set_amp(tricep,int(50+50*mel::cos(current_t.as_seconds())));
 
             stim.update();
         }

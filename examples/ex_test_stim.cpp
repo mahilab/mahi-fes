@@ -56,10 +56,10 @@ int main() {
     while (!stop) {
         {
             // update the pulsewidth of each of the stimulation events
-            stim.write_amp(bicep, 40 + int(10 * sin(t)));
-            stim.write_amp(tricep, 30 + int(10 * sin(t)));
-            stim.write_amp(forearm, 20 + int(10 * sin(t)));
-            stim.write_amp(wrist, 10 + int(10 * sin(t)));
+            stim.set_amp(bicep, 40 + int(10 * sin(t)));
+            stim.set_amp(tricep, 30 + int(10 * sin(t)));
+            stim.set_amp(forearm, 20 + int(10 * sin(t)));
+            stim.set_amp(wrist, 10 + int(10 * sin(t)));
 
             // command the stimulation patterns to be sent to the stim board
             stim.update();

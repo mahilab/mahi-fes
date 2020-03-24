@@ -21,54 +21,52 @@
 namespace mahi {
 namespace fes {
 class Event {
-private:
 #define DELETE_EVENT_LEN        0x01
 #define CHANGE_EVENT_PARAMS_LEN 0x04
 #define STIM_EVENT              0x03
 
-    HANDLE        hComm;
-    unsigned char schedule_id;
-    int           delay_time;
-    Channel       channel;
-    unsigned int  pulse_width;
-    unsigned int  amplitude;
-    unsigned char event_type;
-    unsigned char priority;
-    unsigned char zone;
-    unsigned char event_id;
-    unsigned int  max_amplitude;
-    unsigned int  max_pulse_width;
-
 public:
-    // Event();
-
+    /// Event constructor
     Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_,
           unsigned char event_id_, unsigned int pulse_width_ = 0, unsigned int amplitude_ = 0,
           unsigned char event_type_ = STIM_EVENT, unsigned char priority_ = 0x00,
           unsigned char zone_ = 0x00);
-
+    /// Event destructor
     ~Event();
+    /// Sends the message to the UECU to create a new event given the constructor params
     bool create_event();
-
-    unsigned char get_channel_num();
-
-    std::string get_channel_name();
-
-    bool edit_event();
-
+    /// Sends the message to the UECU to delete the event
     bool delete_event();
-
+    /// Sends the edit event message given the current amplitude and pulsewidth values
     bool update();
-
+    /// returns the current amplitude
+    unsigned int get_amplitude();
+    /// returns the current pulsewidth
+    unsigned int get_pulsewidth();
+    /// returns the channel number of the channel attached to this event
+    unsigned char get_channel_num();
+    /// returns the name of the channel attached to this event
+    std::string get_channel_name();
+    /// sets the amplitude of the event (does not write to UECU)
     void set_amplitude(unsigned int amplitude_);
-
+    /// sets the pulsewidth of the event (does not write to UECU)
     void set_pulsewidth(unsigned int pulse_width_);
-
+    /// sets the event id as received in a message from the UECU after setting up
     void set_event_id(unsigned char event_id);
 
-    unsigned int get_amplitude();
-
-    unsigned int get_pulsewidth();
+private:
+    HANDLE        hComm;        // serial handle to the appropriate UECU
+    unsigned char schedule_id;  // schedule id of the associated schedule
+    unsigned int delay_time;  // delay time from the beginning of the schedule (all events should be different)
+    Channel       channel;    // channel attached to the event
+    unsigned int  pulse_width;      // current pulse-width value
+    unsigned int  amplitude;        // current amplitude value
+    unsigned char event_type;       // event type associated to the event
+    unsigned char priority;         // priority level for events (less has more priority)
+    unsigned char zone;             // unused (should be 0x00)
+    unsigned char event_id;         // event id returned from the UECU at event creation time
+    unsigned int  max_amplitude;    // max amplitude allowed for the evenet
+    unsigned int  max_pulse_width;  // max pulse width allowed for the event
 };
 }  // namespace fes
 }  // namespace mahi

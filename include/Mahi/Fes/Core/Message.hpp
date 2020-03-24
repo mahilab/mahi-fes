@@ -24,20 +24,22 @@ namespace fes {
 /// Generic class for capturing a message
 class Message {
 public:
+    /// Message constructor
     Message();
+    /// Message destructor
     ~Message();
-    size_t                     get_size();
+    /// Return the size of the message, including header and crc/checksum
+    size_t get_size();
+    /// return the whole message, including header and crc/checksum as unsigned char vector
     std::vector<unsigned char> get_message();
 
 protected:
-    std::vector<unsigned char> m_message;  ///< vector of the message itself
-
-    size_t m_size;  ///< size of the given message
-
-    unsigned char m_message_type;  ///< type of message
-
     /// Returns a pointer to the first element of the message vector
     unsigned char* get_message_pointer();
+
+    std::vector<unsigned char> m_message;       // vector of the message itself
+    size_t                     m_size;          // size of the given message
+    unsigned char              m_message_type;  // type of message
 };
 
 }  // namespace fes

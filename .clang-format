@@ -20,7 +20,7 @@ AlwaysBreakBeforeMultilineStrings: 'false'
 BinPackArguments: 'true'
 BinPackParameters: 'true'
 BreakConstructorInitializers: AfterColon
-ColumnLimit: '100'
+ColumnLimit: '120'
 CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
 ConstructorInitializerIndentWidth: '4'

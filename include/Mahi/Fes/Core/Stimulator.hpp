@@ -19,90 +19,92 @@
 #include <Windows.h>
 
 #include <Mahi/Fes/Core/Channel.hpp>
+#include <Mahi/Fes/Core/ReadMessage.hpp>
 #include <Mahi/Fes/Core/Scheduler.hpp>
 #include <Mahi/Fes/Utility/Utility.hpp>
-#include <Mahi/Fes/Core/ReadMessage.hpp>
 #include <mutex>
+#include <queue>
 #include <string>
 #include <vector>
-#include <queue>
 
 namespace mahi {
 namespace fes {
 class Stimulator {
 public:
-    Stimulator(const std::string& name_, const std::string& com_port_,
-               std::vector<Channel>& channels_, size_t size_);
-
+    /// Stimulator constructor
+    Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_);
+    /// Stimulator destructor
     ~Stimulator();
-
+    /// open, configure, and initialize the serial communication for use with the board
     bool enable();
-
+    /// disable all schedulers and events and close serial communication
     void disable();
-
+    /// takes the scheduler objet that already exists and sends the create_scheduler message
+    /// to the UECU, assigning scheduler id in the process
+    bool create_scheduler(const unsigned char sync_msg, double frequency_);
+    /// checks whether the stimulator has been enabled
+    bool is_enabled();
+    /// set the amplitude for a single channel (event). This runs down to the event object
+    void set_amp(Channel channel_, unsigned int amplitude_);
+    /// set the amplitude for a vector of channels (events). This runs down to the event object
+    void set_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_);
+    /// set the pulsewidth for a single channel (event). This runs down to the event object
+    void write_pw(Channel channel_, unsigned int pw_);
+    /// set the pulsewidth for a vector of channels (events). This runs down to the event object
+    void write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_);
+    /// update the max amplitude for a single channel. This runs down to the event object
+    void update_max_amp(Channel channel_, unsigned int max_amp_);
+    /// update the max pulsewidth for a single channel. This runs down to the event object
+    void update_max_pw(Channel channel_, unsigned int max_pw_);
+    /// add an event to the scheduler
+    bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
+    /// add a vector of events to the scheduler
+    bool add_events(std::vector<Channel> channels_, unsigned char event_type = STIM_EVENT);
+    /// return a vector of the channels of the stimulator
+    std::vector<Channel> get_channels();
+    /// start the stimulator by sending the sync message
+    bool begin();
+    /// command values set by set_amp/pw commands by sending messages to the UECU
+    bool update();
+    /// halt the scheduler, cancelling all events and schedulers
+    bool halt_scheduler();
+    /// return the name of the stimulator
     std::string get_name();
 
-    bool create_scheduler(const unsigned char sync_msg, double frequency_);
-
-    bool is_enabled();
-
-    void write_amp(Channel channel_, unsigned int amplitude_);
-
-    void write_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_);
-
-    void write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_);
-
-    void write_pw(Channel channel_, unsigned int pw_);
-
-    void update_max_amp(Channel channel_, unsigned int max_amp_);
-
-    void update_max_pw(Channel channel_, unsigned int max_pw_);
-
-    bool add_event(Channel channel_, unsigned char event_type = STIM_EVENT);
-
-    bool add_events(std::vector<Channel> channels_, unsigned char event_type = STIM_EVENT);
-
-    std::vector<Channel> get_channels();
-
-    bool begin();
-
-    bool update();
-
-    bool halt_scheduler();
-
-    size_t                   num_events;
-    std::vector<int>         amplitudes;
-    std::vector<int>         pulsewidths;
-    std::vector<int>         max_amplitudes;
-    std::vector<int>         max_pulsewidths;
-    std::vector<std::string> channel_names;
-    std::mutex               mtx;
+    size_t                    num_events;       // number of events the stimulator is handling
+    std::vector<unsigned int> amplitudes;       // vector of amplitudes corresponding to channels
+    std::vector<unsigned int> pulsewidths;      // vector of pulsewidths corresponding to channels
+    std::vector<unsigned int> max_amplitudes;   // vector of max amplitudes corresponding to channels
+    std::vector<unsigned int> max_pulsewidths;  // vector of max pulsewidths corresponding to channels
+    std::vector<std::string>  channel_names;    // returns vector of the names of the channels
 
 private:
-    // variables for serial communication
-    HANDLE hComm;
-    DCB    dcbSerialParams = {0};
 
-    mahi::util::Time delay_time = mahi::util::milliseconds(100);
-
-    std::string             name;
-    std::string             com_port;
-    bool                    enabled;
-    std::vector<Channel>    channels;
-    Scheduler               scheduler;
-    // mahi::util::Time        setup_time = mahi::util::milliseconds(1);
-    int                     inc_msg_count = 0;
-    std::queue<ReadMessage> inc_messages;
-
+    /// open the comport that the UECU is controlled from
     bool open_port();
-
+    /// configure the comport that the UECU is controlled from
     bool configure_port();
-
+    /// initialize the board by enabling each of the channels given setup parameters
     bool initialize_board();
-
+    /// halt the stimulator and close the comports
     void close_stimulator();
-
+    /// read all incoming messages from the stimulator
     void read_all();
+
+    HANDLE hComm;                  // serial handle to the appropriate UECU
+    DCB    dcbSerialParams = {0};  // serial parameters to handle the serial communication to UECU
+
+    mahi::util::Time delay_time = mahi::util::milliseconds(100);  // delay time when sending messages
+
+    std::string             name;               // name of the stimulator
+    std::string             com_port;           // comport that the UECU is written to from
+    bool                    enabled;            // shows if the stimulator has been enabled
+    std::vector<Channel>    channels;           // vector of channels enabled by the stim board
+    Scheduler               scheduler;          // scheduler which handles events
+    int                     inc_msg_count = 0;  // number of messages the stimulator has received
+    std::queue<ReadMessage> inc_messages;       // queue of incoming messages
+    std::mutex              mtx;                // mutex for handling simultaneous reading/writing
+    
 };
 }  // namespace fes
 }  // namespace mahi
