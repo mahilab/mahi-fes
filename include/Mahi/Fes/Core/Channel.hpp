@@ -62,14 +62,13 @@ public:
     void set_max_pulse_width(unsigned int);
 
 private:
-    std::string   name;         // name of the channel-this is used for changing channel parameters
-    unsigned char aspect;       // the aspect ratio for the channel: (first 4 bits)/(second 4 bits)
-    unsigned char channel_num;  // channel number as #defined in this file
-    unsigned char an_ca_nums;   // anode cathode channel numbers
-    unsigned int  max_amp;      // maximum amplitude
-    unsigned int  max_pw;       // maximum pulsewidth
-    unsigned int  ip_delay;     // interphase delay
-    unsigned char event_id;     // event id as returned by the stimulator
+    std::string   m_name;         // name of the channel-this is used for changing channel parameters
+    unsigned char m_aspect;       // the aspect ratio for the channel: (first 4 bits)/(second 4 bits)
+    unsigned char m_channel_num;  // channel number as #defined in this file
+    unsigned char m_an_ca_nums;   // anode cathode channel numbers
+    unsigned int  m_max_amp;      // maximum amplitude
+    unsigned int  m_max_pw;       // maximum pulsewidth
+    unsigned int  m_ip_delay;     // interphase delay
 };
 }  // namespace fes
 }  // namespace mahi

@@ -15,6 +15,6 @@ int main() {
     register_ctrl_handler(handler);
 
     VirtualStim vstim("COM10");
-    vstim.begin();
+    vstim.run();
     return 0;
 }

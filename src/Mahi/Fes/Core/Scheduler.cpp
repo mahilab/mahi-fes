@@ -24,15 +24,15 @@ using namespace mahi::util;
 namespace mahi {
 namespace fes {
 
-Scheduler::Scheduler() : id(0x01) {}
+Scheduler::Scheduler() : m_id(0x01) {}
 
 Scheduler::~Scheduler() { disable(); }
 
 bool Scheduler::create_scheduler(HANDLE& hComm_, const unsigned char sync_char_,
                                  unsigned int duration, Time setup_time) {
-    sync_char = sync_char_;
+    m_sync_char = sync_char_;
 
-    hComm = hComm_;
+    m_hComm = hComm_;
 
     DWORD dwBytesWritten = 0;  // Captures how many bits were written
 
@@ -43,15 +43,15 @@ bool Scheduler::create_scheduler(HANDLE& hComm_, const unsigned char sync_char_,
                                             SRC_ADR,              // Source
                                             CREATE_SCHEDULE_MSG,  // Msg type
                                             CREATE_SCHED_LEN,     // Message length
-                                            sync_char,            // sync character
+                                            m_sync_char,            // sync character
                                             duration_chars[0],    // schedule duration (byte 1)
                                             duration_chars[1],    // schedule duration (byte 2)
                                             0x00};                // checksum placeholder
 
     WriteMessage crt_sched_message(crt_sched);
 
-    if (crt_sched_message.write(hComm, "Creating Scheduler")) {
-        enabled = true;
+    if (crt_sched_message.write(m_hComm, "Creating Scheduler")) {
+        m_enabled = true;
         sleep(setup_time);
         return true;
     } else {
@@ -65,12 +65,12 @@ bool Scheduler::halt_scheduler() {
                                            SRC_ADR,   // Source
                                            HALT_MSG,  // Msg type
                                            HALT_LEN,  // Msg len
-                                           id,        // Schedule ID
+                                           m_id,        // Schedule ID
                                            0x00};     // Checksum placeholder
 
         WriteMessage halt_message(halt);
 
-        return halt_message.write(hComm, "Schedule Closing");
+        return halt_message.write(m_hComm, "Schedule Closing");
     } else {
         LOG(Error) << "Scheduler was not enabled. Nothing to disable";
         return false;
@@ -78,11 +78,11 @@ bool Scheduler::halt_scheduler() {
 }
 
 bool Scheduler::add_event(Channel channel_, Time sleep_time, unsigned char event_type) {
-    unsigned int num_events = (unsigned int)events.size();
+    unsigned int num_events = (unsigned int)m_events.size();
 
-    if (enabled) {
+    if (m_enabled) {
         for (unsigned int i = 0; i < num_events; i++) {
-            if (events[i].get_channel_num() == channel_.get_channel_num()) {
+            if (m_events[i].get_channel_num() == channel_.get_channel_num()) {
                 LOG(Error)
                     << "Did not add event because an event already existed with that channel.";
                 return false;
@@ -93,7 +93,7 @@ bool Scheduler::add_event(Channel channel_, Time sleep_time, unsigned char event
         auto delay_time = 5 * num_events;  // ms
 
         // add event to list of events
-        events.push_back(Event(hComm, id, delay_time, channel_, (unsigned char)(num_events + 1)));
+        m_events.push_back(Event(m_hComm, m_id, delay_time, channel_, (unsigned char)(num_events + 1)));
         
         sleep(sleep_time);
         
@@ -105,17 +105,17 @@ bool Scheduler::add_event(Channel channel_, Time sleep_time, unsigned char event
 }
 
 bool Scheduler::send_sync_msg() {
-    if (enabled) {
+    if (m_enabled) {
         std::vector<unsigned char> sync = {DEST_ADR,      // Destination
                                            SRC_ADR,       // Source
                                            SYNC_MSG,      // Msg type
                                            SYNC_MSG_LEN,  // Message length
-                                           sync_char,     // sync character
+                                           m_sync_char,     // sync character
                                            0x00};         // Checksum placeholder
 
         WriteMessage sync_message(sync);
 
-        if (sync_message.write(hComm, "Sending Sync Message")) {
+        if (sync_message.write(m_hComm, "Sending Sync Message")) {
             return true;
         } else {
             disable();
@@ -130,9 +130,9 @@ bool Scheduler::send_sync_msg() {
 void Scheduler::disable() {
     halt_scheduler();
 
-    enabled = false;
+    m_enabled = false;
 
-    for (auto event = events.begin(); event != events.end(); event++) {
+    for (auto event = m_events.begin(); event != m_events.end(); event++) {
         event->delete_event();
     }
 
@@ -140,17 +140,17 @@ void Scheduler::disable() {
                                             SRC_ADR,              // Source
                                             DELETE_SCHEDULE_MSG,  // Msg type
                                             DEL_SCHED_LEN,        // Message length
-                                            id,                   // Schedule ID
+                                            m_id,                   // Schedule ID
                                             0x00};                // Checksum placeholder
 
     WriteMessage del_sched_message(del_sched);
 
-    del_sched_message.write(hComm, "Closing Schedule");
+    del_sched_message.write(m_hComm, "Closing Schedule");
 }
 
 void Scheduler::set_amp(Channel channel_, unsigned int amplitude_) {
     // loop over available events in the scheduler
-    for (auto event = events.begin(); event != events.end(); event++) {
+    for (auto event = m_events.begin(); event != m_events.end(); event++) {
         // if the event is for the correct channel we are looking for, write the amplitude and exit
         // the function
         if (event->get_channel_num() == channel_.get_channel_num()) {
@@ -164,7 +164,7 @@ void Scheduler::set_amp(Channel channel_, unsigned int amplitude_) {
 
 unsigned int Scheduler::get_amp(Channel channel_) {
     // loop over available events in the scheduler
-    for (auto event = events.begin(); event != events.end(); event++) {
+    for (auto event = m_events.begin(); event != m_events.end(); event++) {
         // if the event is for the correct channel we are looking for, wrevente the ampleventude and
         // exevent the function
         if (event->get_channel_num() == channel_.get_channel_num()) {
@@ -178,7 +178,7 @@ unsigned int Scheduler::get_amp(Channel channel_) {
 
 void Scheduler::write_pw(Channel channel_, unsigned int pw_) {
     // loop over available events in the scheduler
-    for (auto event = events.begin(); event != events.end(); event++) {
+    for (auto event = m_events.begin(); event != m_events.end(); event++) {
         // if the event is for the correct channel we are looking for, wrevente the ampleventude and
         // exevent the function
         if (event->get_channel_num() == channel_.get_channel_num()) {
@@ -192,7 +192,7 @@ void Scheduler::write_pw(Channel channel_, unsigned int pw_) {
 
 unsigned int Scheduler::get_pw(Channel channel_) {
     // loop over available events in the scheduler
-    for (auto event = events.begin(); event != events.end(); event++) {
+    for (auto event = m_events.begin(); event != m_events.end(); event++) {
         // if the event is for the correct channel we are looking for, wrevente the ampleventude and
         // exevent the function
         if (event->get_channel_num() == channel_.get_channel_num()) {
@@ -206,7 +206,7 @@ unsigned int Scheduler::get_pw(Channel channel_) {
 
 bool Scheduler::update() {
     // loop over available events in the scheduler
-    for (auto event = events.begin(); event != events.end(); event++) {
+    for (auto event = m_events.begin(); event != m_events.end(); event++) {
         // If any channel fails to update, return false after throwing an error
         if (!event->update()) {
             LOG(Error) << "Channel " << event->get_channel_name() << " failed to update";
@@ -216,12 +216,12 @@ bool Scheduler::update() {
     return true;
 }
 
-size_t Scheduler::get_num_events() { return events.size(); }
+size_t Scheduler::get_num_events() { return m_events.size(); }
 
-unsigned char Scheduler::get_id() { return id; }
+unsigned char Scheduler::get_id() { return m_id; }
 
-void Scheduler::set_id(unsigned char sched_id_) { id = sched_id_; }
+void Scheduler::set_id(unsigned char sched_id_) { m_id = sched_id_; }
 
-bool Scheduler::is_enabled() { return enabled; }
+bool Scheduler::is_enabled() { return m_enabled; }
 }  // namespace fes
 }  // namespace mahi

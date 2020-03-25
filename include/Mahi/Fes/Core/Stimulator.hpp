@@ -71,15 +71,14 @@ public:
     /// return the name of the stimulator
     std::string get_name();
 
-    size_t                    num_events;       // number of events the stimulator is handling
-    std::vector<unsigned int> amplitudes;       // vector of amplitudes corresponding to channels
-    std::vector<unsigned int> pulsewidths;      // vector of pulsewidths corresponding to channels
-    std::vector<unsigned int> max_amplitudes;   // vector of max amplitudes corresponding to channels
-    std::vector<unsigned int> max_pulsewidths;  // vector of max pulsewidths corresponding to channels
-    std::vector<std::string>  channel_names;    // returns vector of the names of the channels
+    size_t                   num_events;       // number of events the stimulator is handling
+    std::vector<int>         amplitudes;       // vector of amplitudes corresponding to channels
+    std::vector<int>         pulsewidths;      // vector of pulsewidths corresponding to channels
+    std::vector<int>         max_amplitudes;   // vector of max amplitudes corresponding to channels
+    std::vector<int>         max_pulsewidths;  // vector of max pulsewidths corresponding to channels
+    std::vector<std::string> channel_names;    // returns vector of the names of the channels
 
 private:
-
     /// open the comport that the UECU is controlled from
     bool open_port();
     /// configure the comport that the UECU is controlled from
@@ -91,20 +90,19 @@ private:
     /// read all incoming messages from the stimulator
     void read_all();
 
-    HANDLE hComm;                  // serial handle to the appropriate UECU
-    DCB    dcbSerialParams = {0};  // serial parameters to handle the serial communication to UECU
+    HANDLE m_hComm;                  // serial handle to the appropriate UECU
+    DCB    m_dcbSerialParams = {0};  // serial parameters to handle the serial communication to UECU
 
-    mahi::util::Time delay_time = mahi::util::milliseconds(100);  // delay time when sending messages
+    mahi::util::Time m_delay_time = mahi::util::milliseconds(100);  // delay time when sending messages
 
-    std::string             name;               // name of the stimulator
-    std::string             com_port;           // comport that the UECU is written to from
-    bool                    enabled;            // shows if the stimulator has been enabled
-    std::vector<Channel>    channels;           // vector of channels enabled by the stim board
-    Scheduler               scheduler;          // scheduler which handles events
-    int                     inc_msg_count = 0;  // number of messages the stimulator has received
-    std::queue<ReadMessage> inc_messages;       // queue of incoming messages
-    std::mutex              mtx;                // mutex for handling simultaneous reading/writing
-    
+    std::string             m_name;               // name of the stimulator
+    std::string             m_com_port;           // comport that the UECU is written to from. should be in format COMX or COMXX
+    bool                    m_enabled;            // shows if the stimulator has been enabled
+    std::vector<Channel>    m_channels;           // vector of channels enabled by the stim board
+    Scheduler               m_scheduler;          // scheduler which handles events
+    int                     m_inc_msg_count = 0;  // number of messages the stimulator has received
+    std::queue<ReadMessage> m_inc_messages;       // queue of incoming messages
+    std::mutex              m_mtx;                // mutex for handling simultaneous reading/writing
 };
 }  // namespace fes
 }  // namespace mahi

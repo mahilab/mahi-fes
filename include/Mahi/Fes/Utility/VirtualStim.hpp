@@ -26,6 +26,17 @@
 namespace mahi {
 namespace fes {
 class VirtualStim : public mahi::gui::Application {
+public:
+    /// VirtualStim Constructor
+    VirtualStim(const std::string& com_port_);
+    /// VirtualStim Destructor
+    ~VirtualStim();
+    /// continously updates all of the different messages handled by add_monitor
+    /// based on inputs from the comport
+    void poll();
+    /// run the update to refresh the display of the application window
+    void update();
+
 private:
     struct SerialMessage {
         std::vector<unsigned char> message;
@@ -33,45 +44,42 @@ private:
         double                     time    = 0.0;
         unsigned int               msg_num = 0;
     };
-    unsigned int             msg_count = 0;
-    DCB                      dcbSerialParams;
-    std::string              com_port;
-    bool                     open_port();
-    bool                     configure_port();
+
+    /// opens the serial port as indicated by the input argument
+    bool open_port();
+    /// configures the comport based on general settings
+    bool configure_port();
+    /// function to format the message into a way that outputs nicely
     std::vector<std::string> fmt_msg(std::vector<unsigned char> message);
-    void                     add_monitor(SerialMessage ser_msg);
-    HANDLE                   hComm;
-    bool                     open  = true;
-    bool                     pause = false;
-    std::thread              poll_thread;
-    // std::thread run_thread;
-    std::string   recent_msg_uc;
-    std::string   recent_msg_int;
-    SerialMessage recent_message        = {std::vector<unsigned char>{}, "Recent Message", 0.0, 0};
-    SerialMessage channel_setup_message = {std::vector<unsigned char>{}, "Channel Setup", 0.0, 0};
-    SerialMessage scheduler_setup_message = {std::vector<unsigned char>{}, "Scheduler Setup", 0.0,
-                                             0};
-    SerialMessage scheduler_halt_message = {std::vector<unsigned char>{}, "Halt Scheduler", 0.0, 0};
-    SerialMessage scheduler_delete_message = {std::vector<unsigned char>{}, "Delete Scheduler", 0.0,
-                                              0};
-    SerialMessage scheduler_sync_message = {std::vector<unsigned char>{}, "Sync Scheduler", 0.0, 0};
-    SerialMessage event_create_message   = {std::vector<unsigned char>{}, "Create Event", 0.0, 0};
-    SerialMessage event_delete_message   = {std::vector<unsigned char>{}, "Delete Event", 0.0, 0};
-    SerialMessage event_edit_1_message   = {std::vector<unsigned char>{}, "Edit Event 1", 0.0, 0};
-    SerialMessage event_edit_2_message   = {std::vector<unsigned char>{}, "Edit Event 2", 0.0, 0};
-    SerialMessage event_edit_3_message   = {std::vector<unsigned char>{}, "Edit Event 3", 0.0, 0};
-    SerialMessage event_edit_4_message   = {std::vector<unsigned char>{}, "Edit Event 4", 0.0, 0};
-    SerialMessage unknown_message        = {std::vector<unsigned char>{}, "Unkown", 0.0, 0};
+    /// adds a "monitor" for a specific type of message class to the gui
+    void add_monitor(SerialMessage ser_msg);
 
-    mahi::util::RingBuffer<SerialMessage> recent_messages;
-    std::vector<SerialMessage>            recent_feed;
+    unsigned int                          m_msg_count = 0;    // total number of messages received
+    DCB                                   m_dcbSerialParams;  // parameters to handle serial port communication
+    std::string                           m_com_port;         // comport number - should be formatted COMX or COMXX
+    HANDLE                                m_hComm;            // serial handle to the desired comport
+    bool                                  m_open  = true;     // whether or not the application is open
+    bool                                  m_pause = false;    // pauses the recent messages feed
+    std::thread                           m_poll_thread;      // thread for handling continuous polling
+    mahi::util::RingBuffer<SerialMessage> m_recent_messages;  // ring buffer of recent messages
+    std::vector<SerialMessage>            m_recent_feed;      // vector of recent messages from the recent_messages ringbuffer
+    std::string                           m_recent_msg_uc;    // recent message as an unsigned char
+    std::string                           m_recent_msg_int;   // recent message as an int
 
-public:
-    VirtualStim(const std::string& com_port_);
-    ~VirtualStim();
-    void poll();
-    void update();
-    void begin();
+    // different formats of SerialMessages
+    SerialMessage m_recent_message           = {std::vector<unsigned char>{}, "Recent Message", 0.0, 0};
+    SerialMessage m_channel_setup_message    = {std::vector<unsigned char>{}, "Channel Setup", 0.0, 0};
+    SerialMessage m_scheduler_setup_message  = {std::vector<unsigned char>{}, "Scheduler Setup", 0.0, 0};
+    SerialMessage m_scheduler_halt_message   = {std::vector<unsigned char>{}, "Halt Scheduler", 0.0, 0};
+    SerialMessage m_scheduler_delete_message = {std::vector<unsigned char>{}, "Delete Scheduler", 0.0, 0};
+    SerialMessage m_scheduler_sync_message   = {std::vector<unsigned char>{}, "Sync Scheduler", 0.0, 0};
+    SerialMessage m_event_create_message     = {std::vector<unsigned char>{}, "Create Event", 0.0, 0};
+    SerialMessage m_event_delete_message     = {std::vector<unsigned char>{}, "Delete Event", 0.0, 0};
+    SerialMessage m_event_edit_1_message     = {std::vector<unsigned char>{}, "Edit Event 1", 0.0, 0};
+    SerialMessage m_event_edit_2_message     = {std::vector<unsigned char>{}, "Edit Event 2", 0.0, 0};
+    SerialMessage m_event_edit_3_message     = {std::vector<unsigned char>{}, "Edit Event 3", 0.0, 0};
+    SerialMessage m_event_edit_4_message     = {std::vector<unsigned char>{}, "Edit Event 4", 0.0, 0};
+    SerialMessage m_unknown_message          = {std::vector<unsigned char>{}, "Unkown", 0.0, 0};
 };
 
 }  // namespace fes

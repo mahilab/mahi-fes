@@ -37,21 +37,19 @@ public:
     std::vector<unsigned char> get_data();
     /// returns the type of the message as an unsigned char
     unsigned char get_read_message_type();
-
-    size_t        m_msg_count = 0;      // the total number of messages received from the board
-    unsigned char m_read_message_type;  // the type of message-refer to utility.hpp for msg types
-    std::vector<unsigned char> m_crc;   // the unsigned char values of the crc
-
-    std::vector<unsigned char> valid_msg_types = {
-        ERROR_REPORT_MSG, EVENT_ERROR_MSG, CREATE_SCHEDULE_REPLY_MSG, CREATE_EVENT_REPLY_MSG,
-        EVENT_COMMAND_REPLY_MSG};  // list of message types that can be sent
-
-private:
     /// checks if the read message is valid according to size, type, and crc
     bool is_valid();
-    
+
+    size_t                     m_msg_count = 0;      // the total number of messages received from the board
+    unsigned char              m_read_message_type;  // the type of message-refer to utility.hpp for msg types
+    std::vector<unsigned char> m_crc;                // the unsigned char values of the crc
+
+    std::vector<unsigned char> valid_msg_types = {ERROR_REPORT_MSG, EVENT_ERROR_MSG, CREATE_SCHEDULE_REPLY_MSG,
+                                                  CREATE_EVENT_REPLY_MSG,
+                                                  EVENT_COMMAND_REPLY_MSG};  // list of message types that can be sent
+
+private:
     std::vector<unsigned char> m_data;  // message data (without header or crc)
-    
 };
 
 }  // namespace fes

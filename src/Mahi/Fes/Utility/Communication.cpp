@@ -8,8 +8,8 @@ namespace mahi {
 namespace fes {
 void check_inc_messages(HANDLE hComm, std::queue<ReadMessage> &inc_messages) {
     while (true) {
-        size_t inc_msg_count = inc_messages.size();
-        DWORD         header_size = 4;
+        size_t        inc_msg_count = inc_messages.size();
+        DWORD         header_size   = 4;
         unsigned char msg_header[4];
 
         DWORD dwBytesRead = 0;
@@ -54,15 +54,15 @@ void check_inc_messages(HANDLE hComm, std::queue<ReadMessage> &inc_messages) {
 }
 
 ReadMessage wait_for_message(HANDLE hComm, std::queue<ReadMessage> &inc_messages) {
-    size_t inc_msg_count = inc_messages.size();
-    DWORD         header_size = 8;
+    size_t        inc_msg_count = inc_messages.size();
+    DWORD         header_size   = 8;
     unsigned char msg_header[8];
 
     DWORD dwBytesRead = 0;
 
     ReadMessage received_msg(std::vector<unsigned char>{}, inc_msg_count);
 
-    bool message_received = false;
+    bool  message_received = false;
     Clock timeout_clock;
 
     while (!message_received && (timeout_clock.get_elapsed_time().as_seconds() < 1)) {
@@ -79,24 +79,19 @@ ReadMessage wait_for_message(HANDLE hComm, std::queue<ReadMessage> &inc_messages
                     inc_msg_count += 1;
                     std::vector<unsigned char> msg;
                     for (unsigned int i = 0; i < (header_size + body_size); i++) {
-                        if (i < header_size){
+                        if (i < header_size) {
                             msg.push_back(msg_header[i]);
-                        }
-                        else{
+                        } else {
                             msg.push_back(msg_body[i - header_size]);
                         }
                     }
-                    
-                    received_msg = ReadMessage(msg, inc_msg_count);
+
+                    received_msg     = ReadMessage(msg, inc_msg_count);
                     message_received = true;
                 } else {
-                    std::cout << "invalid message: ";
-                    for (size_t j = 0; j < header_size; j++) {
-                        std::cout << print_as_hex(msg_header[j]);
-                        if (j != header_size)
-                            std::cout << ", ";
-                    }
-                    std::cout << std::endl;
+                    LOG(Error) << "Invalid Message Header Received: ";
+                    std::vector<unsigned char> msg_header_vec(std::begin(msg_header), std::end(msg_header));
+                    print_message(msg_header_vec);
                 }
             }
         }
@@ -108,14 +103,54 @@ void process_inc_messages(HANDLE hComm, std::queue<ReadMessage> &inc_messages) {
     for (size_t i = 0; i < inc_messages.size(); i++) {
         ReadMessage current_message = inc_messages.front();
         inc_messages.pop();
-        std::cout << "Message: ";
-        for (size_t j = 0; j < current_message.get_size(); j++) {
-            std::cout << current_message.get_message()[j];
-            if (j != current_message.get_size())
-                std::cout << ", ";
-        }
-        std::cout << std::endl;
+        print_message(current_message.get_message());
     }
 }
+
+std::vector<unsigned char> read_message(HANDLE hComm, bool should_wait, Time timeout) {
+    DWORD         header_size = 8;
+    unsigned char msg_header[8];
+    DWORD         dwBytesRead = 0;
+
+    bool  message_received = false;
+    Clock timeout_clock;
+
+    std::vector<unsigned char> msg;
+
+    while (!message_received && ((timeout_clock.get_elapsed_time() < timeout) && should_wait)) {
+        if (!ReadFile(hComm, msg_header, header_size, &dwBytesRead, NULL)) {
+            LOG(Error) << "Could not read message header. Returning empty vector.";
+        } else if (dwBytesRead != 0) {
+            DWORD body_size = (unsigned int)msg_header[7] + 2;
+
+            std::unique_ptr<unsigned char[]> msg_body(new unsigned char[body_size]);
+            if (!ReadFile(hComm, msg_body.get(), body_size, &dwBytesRead, NULL)) {
+                LOG(Error) << "Could not read message body. Returning empty vector.";
+            } else {
+                if (msg_header[4] == (unsigned char)0x80 && msg_header[5] == (unsigned char)0x04) {
+                    for (unsigned int i = 0; i < (header_size + body_size); i++) {
+                        if (i < header_size) {
+                            msg.push_back(msg_header[i]);
+                        } else {
+                            msg.push_back(msg_body[i - header_size]);
+                        }
+                    }
+                    message_received = true;
+                } else {
+                    LOG(Error) << "Invalid Message Header Received: ";
+                    std::vector<unsigned char> msg_header_vec(std::begin(msg_header), std::end(msg_header));
+                    print_message(msg_header_vec);
+                    return msg_header_vec;
+                }
+            }
+        }
+    }
+    if (!message_received) {
+        LOG(Error) << "Ran into timeout when waiting to receive a message. Returning empty message instead.";
+    }
+    print_message(msg);
+    return msg;
+}
+
 }  // namespace fes
 }  // namespace mahi

@@ -25,21 +25,26 @@ namespace mahi {
 namespace fes {
 
 ReadMessage::ReadMessage(std::vector<unsigned char> message) {
-    ReadMessage(message, 0);
-    // m_message           = message;
-    // m_size              = message.size();
-    // m_checksum          = m_size > 0 ? m_message.back() : 0x00;
-    // m_read_message_type = m_size > 1 ? m_message[6] : 0x00;
-    // std::vector<unsigned char> data_vec;
-    // if(m_size > 2) std::copy(m_message.begin() + 8, m_message.begin() + m_size - 2, std::back_inserter(data_vec));
-    // m_data = data_vec;
+    m_message           = message;
+    m_size              = m_message.size();
+    if(m_size > 1){
+        std::vector<unsigned char> crc(m_message.end()-2, m_message.end());
+        m_crc = crc;
+    }
+    else{
+        m_crc = {0x00, 0x00};
+    } 
+    m_read_message_type = m_size > 1 ? m_message[6] : 0x00;
+    std::vector<unsigned char> data_vec;
+    if(m_size > 2) std::copy(m_message.begin() + 8, m_message.begin() + m_size - 2, std::back_inserter(data_vec));
+    m_data = data_vec;
 }
 
 ReadMessage::ReadMessage(std::vector<unsigned char> message, size_t msg_count) {
     m_message           = message;
     m_size              = m_message.size();
     if(m_size > 1){
-        std::vector<unsigned char> crc(m_message.end()-1, m_message.end());
+        std::vector<unsigned char> crc(m_message.end()-2, m_message.end());
         m_crc = crc;
     }
     else{
@@ -76,6 +81,8 @@ unsigned char ReadMessage::get_read_message_type() { return m_read_message_type;
 
 bool ReadMessage::is_valid() {
     if (calc_crc() != m_crc) {
+        print_message(calc_crc());
+        print_message(m_crc);
         LOG(Error) << "Read checksum is wrong; message is likely invalid.";
         return false;
     } else if (!binary_search(valid_msg_types.begin(), valid_msg_types.end(),

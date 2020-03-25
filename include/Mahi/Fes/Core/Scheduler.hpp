@@ -23,17 +23,11 @@
 
 namespace mahi {
 namespace fes {
-class Scheduler {
-private:
-    unsigned char      id;         // the schedule id
-    std::vector<Event> events;     // vector of events for the current scheduler
-    bool               enabled;    // value indicating whether the scheduler is currently enabled
-    HANDLE             hComm;      // serial handle to the appropriate UECU
-    unsigned char      sync_char;  // sync message for the scheduler which tells it to begin
 
 #define DEL_SCHED_LEN 0x01
 #define STIM_EVENT    0x03
 
+class Scheduler {
 public:
     /// Scheduler constructor
     Scheduler();
@@ -71,6 +65,13 @@ public:
     bool send_sync_msg();
     /// return whether or not the scheduler is enabled
     bool is_enabled();
+    
+private:
+    unsigned char      m_id;         // the schedule id
+    std::vector<Event> m_events;     // vector of events for the current scheduler
+    bool               m_enabled;    // value indicating whether the scheduler is currently enabled
+    HANDLE             m_hComm;      // serial handle to the appropriate UECU
+    unsigned char      m_sync_char;  // sync message for the scheduler which tells it to begin
 };
 }  // namespace fes
 }  // namespace mahi

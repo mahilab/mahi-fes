@@ -23,17 +23,6 @@ using namespace mahi::util;
 
 namespace mahi {
 namespace fes {
-    
-// checksum is a function that preforms checksums of all of the unsigned char arrays used in this
-// code
-int checksum(unsigned char myarray[], int array_size) {
-    int csum = 0;
-    for (int i = 0; i < array_size - 1; i++) {
-        csum += myarray[i];
-    }
-    csum = ((0x00FF & csum) + (csum >> 8)) ^ 0xFF;
-    return csum;
-}
 
 std::string print_as_hex(unsigned char num){
     char char_buff[20];
@@ -58,37 +47,15 @@ std::vector<unsigned char> int_to_twobytes(int input_int) {
     return char_vec_out;
 }
 
-bool write_message(HANDLE hComm_, unsigned char* message_, const int message_size_,
-                   const std::string& activity) {
-    // dont log anything if the input string is "NONE"
-    bool log_message = (activity.compare("NONE") != 0);
-
-    // Captures how many bits were written
-    DWORD dwBytesWritten = 0;
-
-    // add the checksum to the last message
-    message_[message_size_ - 1] = (unsigned char)checksum(message_, message_size_);
-
-    // write the file iff possible
-    if (!WriteFile(hComm_, message_, message_size_, &dwBytesWritten, NULL)) {
-        if (log_message) {
-            LOG(Error) << "Error " << activity;
+void print_message(std::vector<unsigned char> message) {
+    std::cout << "Message: ";
+    for (size_t i = 0; i < message.size(); i++) {
+        std::cout << print_as_hex(message[i]);
+        if (i != message.size()) {
+            std::cout << ", ";
         }
-        return false;
-    } else {
-        // for (auto i = 0; i < message_size_; i++){
-        //     char char_buff[4];
-        //     sprintf(char_buff, "0x%02X", (unsigned int)message_[i]);
-        //     std::cout << char_buff;
-        //     if(i != (message_size_-1)) std::cout << ", ";
-        //     else std::cout << std::endl;
-        // }
-
-        if (log_message) {
-            LOG(Info) << activity << " was Successful.";
-        }
-        return true;
     }
+    std::cout << std::endl;
 }
 }  // namespace fes
 }  // namespace mahi

@@ -30,63 +30,56 @@ namespace mahi {
 namespace fes {
 
 VirtualStim::VirtualStim(const std::string& com_port_) :
-    // Application(1300,800,"Stimulator Visualization"),
     Application(),
-    com_port(com_port_),
-    recent_messages(39) {
+    m_com_port(com_port_),
+    m_recent_messages(39) {
     open_port();
     configure_port();
 
     ImGui::StyleColorsLight();
-    // hideWindow();
-    poll_thread = std::thread(&VirtualStim::poll, this);
-    // run();
+    m_poll_thread = std::thread(&VirtualStim::poll, this);
 }
 
 VirtualStim::~VirtualStim() {
-    poll_thread.join();
-    // run_thread.join();
+    m_poll_thread.join();
 }
 
-void VirtualStim::begin() { run(); }
-
 void VirtualStim::update() {
-    ImGui::Begin("Virtual Stimulator Receiver", &open);
+    ImGui::Begin("Virtual Stimulator Receiver", &m_open);
     {
         ImGui::BeginChild(
             "Child1",
             ImVec2(ImGui::GetWindowContentRegionWidth() * 0.5f, ImGui::GetWindowSize().y - 40),
             true);
-        add_monitor(recent_message);
-        add_monitor(channel_setup_message);
-        add_monitor(scheduler_setup_message);
-        add_monitor(event_create_message);
-        add_monitor(scheduler_sync_message);
-        add_monitor(event_edit_1_message);
-        add_monitor(event_edit_2_message);
-        add_monitor(event_edit_3_message);
-        add_monitor(event_edit_4_message);
-        add_monitor(scheduler_halt_message);
-        add_monitor(event_delete_message);
-        add_monitor(scheduler_delete_message);
-        add_monitor(unknown_message);
+        add_monitor(m_recent_message);
+        add_monitor(m_channel_setup_message);
+        add_monitor(m_scheduler_setup_message);
+        add_monitor(m_event_create_message);
+        add_monitor(m_scheduler_sync_message);
+        add_monitor(m_event_edit_1_message);
+        add_monitor(m_event_edit_2_message);
+        add_monitor(m_event_edit_3_message);
+        add_monitor(m_event_edit_4_message);
+        add_monitor(m_scheduler_halt_message);
+        add_monitor(m_event_delete_message);
+        add_monitor(m_scheduler_delete_message);
+        add_monitor(m_unknown_message);
         ImGui::EndChild();
-    }  // ImGui::EndGroup();
+    }
 
     ImGui::SameLine();
-    // ImGui::BeginGroup();
     {
         ImGui::BeginChild("Child2", ImVec2(0, ImGui::GetWindowSize().y - 40), true);
         ImGui::Text("Recent Message Feed");
         ImGui::SameLine();
-        ImGui::Checkbox("Pause", &pause);
+        ImGui::Checkbox("Pause", &m_pause);
         ImGui::Separator();
         ImGui::Separator();
-        for (auto i = 0; i < recent_feed.size(); i++) {
-            std::vector<std::string> temp_msg_strings = fmt_msg(recent_feed[i].message);
+        for (auto i = 0; i < m_recent_feed.size(); i++) {
+            std::vector<std::string> temp_msg_strings = fmt_msg(m_recent_feed[i].message);
             std::string              temp_msg_string  = temp_msg_strings[1];
             char                     time_buff[7];
-            sprintf(time_buff, "%4.2f", recent_feed[i].time);
+            sprintf(time_buff, "%4.2f", m_recent_feed[i].time);
             std::string time_string(time_buff);
             ImGui::Text((time_string + ": " + temp_msg_string).c_str());
         }
@@ -95,7 +88,7 @@ void VirtualStim::update() {
     // ImGui::EndGroup();
     ImGui::End();
 
-    if (!open) {
+    if (!m_open) {
         quit();
     }
 }
@@ -154,13 +147,13 @@ bool VirtualStim::open_port() {
     // std::string
     std::wstring com_prefix = L"\\\\.\\";
     std::wstring com_suffix =
-        std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(com_port);
+        std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(m_com_port);
     std::wstring comID = com_prefix + com_suffix;
 
     // std::wstring stemp = std::wstring(com_port_formatted.begin(), com_port_formatted.end());
     // LPCWSTR com_port_lpcwstr = stemp.c_str();
 
-    hComm = CreateFileW(comID.c_str(),                 // port name
+    m_hComm = CreateFileW(comID.c_str(),                 // port name
                         GENERIC_READ | GENERIC_WRITE,  // Read/Write
                         0,                             // No Sharing
                         NULL,                          // No Security
@@ -169,7 +162,7 @@ bool VirtualStim::open_port() {
                         NULL);                         // Null for Comm Devices
 
     // Check if creating the comport was successful or not and log it
-    if (hComm == INVALID_HANDLE_VALUE) {
+    if (m_hComm == INVALID_HANDLE_VALUE) {
         LOG(Error) << "Failed to open Virtual Stimulator";
         return false;
     } else {
@@ -184,9 +177,9 @@ bool VirtualStim::configure_port() {  // configure_port establishes the settings
 
     // http://bd.eduweb.hhs.nl/micprg/pdf/serial-win.pdf
 
-    dcbSerialParams.DCBlength = sizeof(DCB);
+    m_dcbSerialParams.DCBlength = sizeof(DCB);
 
-    if (!GetCommState(hComm, &dcbSerialParams)) {
+    if (!GetCommState(m_hComm, &m_dcbSerialParams)) {
         LOG(Error) << "Error getting serial port state";
         return false;
     }
@@ -194,25 +187,25 @@ bool VirtualStim::configure_port() {  // configure_port establishes the settings
     // set parameters to use for serial communication
 
     // set the baud rate that we will communicate at to 9600
-    dcbSerialParams.BaudRate = CBR_9600;
+    m_dcbSerialParams.BaudRate = CBR_9600;
 
     // 8 bits in the bytes transmitted and received.
-    dcbSerialParams.ByteSize = 8;
+    m_dcbSerialParams.ByteSize = 8;
 
     // Specify that we are using one stop bit
-    dcbSerialParams.StopBits = ONESTOPBIT;
+    m_dcbSerialParams.StopBits = ONESTOPBIT;
 
     // Specify that we are using no parity
-    dcbSerialParams.Parity = NOPARITY;
+    m_dcbSerialParams.Parity = NOPARITY;
 
     // Disable all parameters dealing with flow control
-    dcbSerialParams.fOutX       = FALSE;
-    dcbSerialParams.fInX        = FALSE;
-    dcbSerialParams.fRtsControl = RTS_CONTROL_DISABLE;
-    dcbSerialParams.fDtrControl = DTR_CONTROL_DISABLE;
+    m_dcbSerialParams.fOutX       = FALSE;
+    m_dcbSerialParams.fInX        = FALSE;
+    m_dcbSerialParams.fRtsControl = RTS_CONTROL_DISABLE;
+    m_dcbSerialParams.fDtrControl = DTR_CONTROL_DISABLE;
 
     // Set communication parameters for the serial port
-    if (!SetCommState(hComm, &dcbSerialParams)) {
+    if (!SetCommState(m_hComm, &m_dcbSerialParams)) {
         LOG(Error) << "Error setting serial port state";
         return false;
     }
@@ -223,7 +216,7 @@ bool VirtualStim::configure_port() {  // configure_port establishes the settings
     timeouts.ReadTotalTimeoutMultiplier  = 10;
     timeouts.WriteTotalTimeoutConstant   = 50;
     timeouts.WriteTotalTimeoutMultiplier = 10;
-    if (!SetCommTimeouts(hComm, &timeouts)) {
+    if (!SetCommTimeouts(m_hComm, &timeouts)) {
         LOG(Error) << "Error setting serial port timeouts";
         return false;
     }
@@ -234,24 +227,23 @@ void VirtualStim::poll() {
     // bool done_reading = false;
     Clock poll_clock;
     poll_clock.restart();
-    while (open) {
+    while (m_open) {
         DWORD         header_size = 4;
         unsigned char msg_header[4];
 
         DWORD dwBytesRead = 0;
 
-        if (!ReadFile(hComm, msg_header, header_size, &dwBytesRead, NULL)) {
-            // done_reading = true;
+        if (!ReadFile(m_hComm, msg_header, header_size, &dwBytesRead, NULL)) {
+            LOG(Error) << "Error reading from comport.";
         }
         if (dwBytesRead != 0) {
             DWORD body_size = (unsigned int)msg_header[3] + 1;
-            // unsigned char *msg_body = new unsigned char[body_size];
             std::unique_ptr<unsigned char[]> msg_body(new unsigned char[body_size]);
-            if (!ReadFile(hComm, msg_body.get(), body_size, &dwBytesRead, NULL)) {
+            if (!ReadFile(m_hComm, msg_body.get(), body_size, &dwBytesRead, NULL)) {
                 LOG(Error) << "Could not read message body";
             } else {
                 if (msg_header[0] == (unsigned char)0x04 && msg_header[1] == (unsigned char)0x80) {
-                    msg_count += 1;
+                    m_msg_count += 1;
                     std::vector<unsigned char> msg;
                     for (unsigned int i = 0; i < (header_size + body_size); i++) {
                         if (i < header_size)
@@ -259,95 +251,81 @@ void VirtualStim::poll() {
                         else
                             msg.push_back(msg_body[i - header_size]);
                     }
-                    recent_message.message = msg;
-                    recent_message.time    = poll_clock.get_elapsed_time().as_seconds();
-                    recent_message.msg_num = msg_count;
-                    recent_messages.push_back(recent_message);
-                    if (!pause)
-                        recent_feed = recent_messages.get_vector();
+                    m_recent_message.message = msg;
+                    m_recent_message.time    = poll_clock.get_elapsed_time().as_seconds();
+                    m_recent_message.msg_num = m_msg_count;
+                    m_recent_messages.push_back(m_recent_message);
+                    if (!m_pause)
+                        m_recent_feed = m_recent_messages.get_vector();
                     switch (msg_header[2]) {
                         // mel::print("here");
                         case (unsigned char)0x47:
-                            channel_setup_message.message = msg;
-                            channel_setup_message.time = poll_clock.get_elapsed_time().as_seconds();
-                            channel_setup_message.msg_num = msg_count;
+                            m_channel_setup_message.message = msg;
+                            m_channel_setup_message.time = poll_clock.get_elapsed_time().as_seconds();
+                            m_channel_setup_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x10:
-                            scheduler_setup_message.message = msg;
-                            scheduler_setup_message.time =
-                                poll_clock.get_elapsed_time().as_seconds();
-                            scheduler_setup_message.msg_num = msg_count;
+                            m_scheduler_setup_message.message = msg;
+                            m_scheduler_setup_message.time = poll_clock.get_elapsed_time().as_seconds();
+                            m_scheduler_setup_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x17:
-                            event_delete_message.message = msg;
-                            event_delete_message.time = poll_clock.get_elapsed_time().as_seconds();
-                            event_delete_message.msg_num = msg_count;
+                            m_event_delete_message.message = msg;
+                            m_event_delete_message.time = poll_clock.get_elapsed_time().as_seconds();
+                            m_event_delete_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x04:
-                            scheduler_halt_message.message = msg;
-                            scheduler_halt_message.time =
+                            m_scheduler_halt_message.message = msg;
+                            m_scheduler_halt_message.time =
                                 poll_clock.get_elapsed_time().as_seconds();
-                            scheduler_halt_message.msg_num = msg_count;
+                            m_scheduler_halt_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x1B:
-                            scheduler_sync_message.message = msg;
-                            scheduler_sync_message.time =
+                            m_scheduler_sync_message.message = msg;
+                            m_scheduler_sync_message.time =
                                 poll_clock.get_elapsed_time().as_seconds();
-                            scheduler_sync_message.msg_num = msg_count;
+                            m_scheduler_sync_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x15:
-                            event_create_message.message = msg;
-                            event_create_message.time = poll_clock.get_elapsed_time().as_seconds();
-                            event_create_message.msg_num = msg_count;
+                            m_event_create_message.message = msg;
+                            m_event_create_message.time = poll_clock.get_elapsed_time().as_seconds();
+                            m_event_create_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x12:
-                            scheduler_delete_message.message = msg;
-                            scheduler_delete_message.time =
+                            m_scheduler_delete_message.message = msg;
+                            m_scheduler_delete_message.time =
                                 poll_clock.get_elapsed_time().as_seconds();
-                            scheduler_delete_message.msg_num = msg_count;
+                            m_scheduler_delete_message.msg_num = m_msg_count;
                             break;
                         case (unsigned char)0x19:
                             if (msg_body[0] == (unsigned char)0x01) {
-                                event_edit_1_message.message = msg;
-                                event_edit_1_message.time =
+                                m_event_edit_1_message.message = msg;
+                                m_event_edit_1_message.time =
                                     poll_clock.get_elapsed_time().as_seconds();
-                                event_edit_1_message.msg_num = msg_count;
+                                m_event_edit_1_message.msg_num = m_msg_count;
                             } else if (msg_body[0] == (unsigned char)0x02) {
-                                event_edit_2_message.message = msg;
-                                event_edit_2_message.time =
+                                m_event_edit_2_message.message = msg;
+                                m_event_edit_2_message.time =
                                     poll_clock.get_elapsed_time().as_seconds();
-                                event_edit_2_message.msg_num = msg_count;
+                                m_event_edit_2_message.msg_num = m_msg_count;
                             } else if (msg_body[0] == (unsigned char)0x03) {
-                                event_edit_3_message.message = msg;
-                                event_edit_3_message.time =
+                                m_event_edit_3_message.message = msg;
+                                m_event_edit_3_message.time =
                                     poll_clock.get_elapsed_time().as_seconds();
-                                event_edit_3_message.msg_num = msg_count;
+                                m_event_edit_3_message.msg_num = m_msg_count;
                             } else if (msg_body[0] == (unsigned char)0x04) {
-                                event_edit_4_message.message = msg;
-                                event_edit_4_message.time =
+                                m_event_edit_4_message.message = msg;
+                                m_event_edit_4_message.time =
                                     poll_clock.get_elapsed_time().as_seconds();
-                                event_edit_4_message.msg_num = msg_count;
+                                m_event_edit_4_message.msg_num = m_msg_count;
                             }
                             break;
                         default:
-                            unknown_message.message = msg;
-                            unknown_message.time    = poll_clock.get_elapsed_time().as_seconds();
-                            unknown_message.msg_num = msg_count;
+                            m_unknown_message.message = msg;
+                            m_unknown_message.time    = poll_clock.get_elapsed_time().as_seconds();
+                            m_unknown_message.msg_num = m_msg_count;
                             break;
                     }
-                } else {
-                    // std::cout << "Message Header: ";
-                    // for (unsigned int i = 0; i < header_size; i++){
-                    //     std::cout << (unsigned int)msg_header[i];
-                    //     if(i != (header_size-1)) std::cout << ", ";
-                    // }
-                    // std::cout << std::endl;
-                    // std::cout << "Message: ";
-                    // for (unsigned int i = 0; i < body_size; i++){
-                    //     std::cout << (unsigned int)msg_body[i];
-                    //     if(i != (body_size-1)) std::cout << ", ";
-                    // }
-                    // std::cout << std::endl;
                 }
             }
         }

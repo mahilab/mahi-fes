@@ -27,10 +27,9 @@ class Event {
 
 public:
     /// Event constructor
-    Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_,
-          unsigned char event_id_, unsigned int pulse_width_ = 0, unsigned int amplitude_ = 0,
-          unsigned char event_type_ = STIM_EVENT, unsigned char priority_ = 0x00,
-          unsigned char zone_ = 0x00);
+    Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_,
+          unsigned int pulse_width_ = 0, unsigned int amplitude_ = 0, unsigned char event_type_ = STIM_EVENT,
+          unsigned char priority_ = 0x00, unsigned char zone_ = 0x00);
     /// Event destructor
     ~Event();
     /// Sends the message to the UECU to create a new event given the constructor params
@@ -55,18 +54,18 @@ public:
     void set_event_id(unsigned char event_id);
 
 private:
-    HANDLE        hComm;        // serial handle to the appropriate UECU
-    unsigned char schedule_id;  // schedule id of the associated schedule
-    unsigned int delay_time;  // delay time from the beginning of the schedule (all events should be different)
-    Channel       channel;    // channel attached to the event
-    unsigned int  pulse_width;      // current pulse-width value
-    unsigned int  amplitude;        // current amplitude value
-    unsigned char event_type;       // event type associated to the event
-    unsigned char priority;         // priority level for events (less has more priority)
-    unsigned char zone;             // unused (should be 0x00)
-    unsigned char event_id;         // event id returned from the UECU at event creation time
-    unsigned int  max_amplitude;    // max amplitude allowed for the evenet
-    unsigned int  max_pulse_width;  // max pulse width allowed for the event
+    HANDLE        m_hComm;            // serial handle to the appropriate UECU
+    unsigned char m_schedule_id;      // schedule id of the associated schedule
+    unsigned int  m_delay_time;       // delay time from the beginning of the schedule (all events should be different)
+    Channel       m_channel;          // channel attached to the event
+    unsigned int  m_pulse_width;      // current pulse-width value
+    unsigned int  m_amplitude;        // current amplitude value
+    unsigned char m_event_type;       // event type associated to the event
+    unsigned char m_priority;         // priority level for events (less has more priority)
+    unsigned char m_event_id;         // event id returned from the UECU at event creation time
+    unsigned int  m_max_amplitude;    // max amplitude allowed for the evenet
+    unsigned int  m_max_pulse_width;  // max pulse width allowed for the event
+    unsigned char m_zone;             // unused (should be 0x00)
 };
 }  // namespace fes
 }  // namespace mahi
