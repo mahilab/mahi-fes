@@ -21,15 +21,6 @@
 
 #include "Windows.h"
 
-namespace mahi {
-namespace fes {
-/// converts a single integer to a vector of correct unsigned chars
-std::vector<unsigned char> int_to_twobytes(int input_int);
-/// converst a single unsigned char to a hex string (0xAB)
-std::string print_as_hex(unsigned char num);
-/// prints a single message that was given as an argument
-void print_message(std::vector<unsigned char> message);
-
 // Message commands for sending serial packets
 #define TRIGGER_SETUP_MSG         0x03
 #define HALT_MSG                  0x04
@@ -69,5 +60,14 @@ void print_message(std::vector<unsigned char> message);
 
 // Event type
 #define STIM_EVENT 0x03
+
+namespace mahi {
+namespace fes {
+/// converts a single integer to a vector of correct unsigned chars
+std::vector<unsigned char> int_to_twobytes(int input_int);
+/// converst a single unsigned char to a hex string (0xAB)
+std::string print_as_hex(unsigned char num);
+/// prints a single message that was given as an argument
+void print_message(std::vector<unsigned char> message);
 }  // namespace fes
 }  // namespace mahi

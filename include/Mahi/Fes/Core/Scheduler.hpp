@@ -21,11 +21,11 @@
 #include <Mahi/Util.hpp>
 #include <vector>
 
-namespace mahi {
-namespace fes {
-
 #define DEL_SCHED_LEN 0x01
 #define STIM_EVENT    0x03
+
+namespace mahi {
+namespace fes {
 
 class Scheduler {
 public:

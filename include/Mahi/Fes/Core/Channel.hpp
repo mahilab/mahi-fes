@@ -21,9 +21,6 @@
 #include <Mahi/Util.hpp>
 #include <string>
 
-namespace mahi {
-namespace fes {
-
 // definition of channels 1-8
 #define CH_1 0x00
 #define CH_2 0x01
@@ -37,6 +34,9 @@ namespace fes {
 // definition of aspect ratios
 #define ONE_TO_ONE 0x11
 #define TWO_TO_ONE 0x21
+
+namespace mahi {
+namespace fes {
 
 /// The stimulator has 8 channels, and these channels are passed into the stimulator to see
 /// what is available. This means that channels are created first, and controls much of the

@@ -18,12 +18,12 @@
 
 #include <Mahi/Fes/Core/Channel.hpp>
 
-namespace mahi {
-namespace fes {
-
 #define DELETE_EVENT_LEN        0x01
 #define CHANGE_EVENT_PARAMS_LEN 0x04
 #define STIM_EVENT              0x03
+
+namespace mahi {
+namespace fes {
 
 /// An event controls what happens on a single channel in the scheduler. The scheduler must
 /// be created before an event can be added, because the event is takes the schedule id as
