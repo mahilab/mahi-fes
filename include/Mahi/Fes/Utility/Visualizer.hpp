@@ -7,6 +7,9 @@
 
 namespace mahi {
 namespace fes {
+/// Visualizer for the FES stimulator. This opens a gui which shows the current pulsewidths
+/// amplitudes from the stimulators. If enabled, it also allows for the gui to write to the
+/// stimulator if it is enabled, but the c++ stimulator always overrides the visualizer.
 class Visualizer : public mahi::gui::Application {
 public:
     /// Visualizer constructor

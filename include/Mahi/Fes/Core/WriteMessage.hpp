@@ -24,6 +24,14 @@
 namespace mahi {
 namespace fes {
 
+/// Structure of byte arrays:
+///  Destination address - always 0x04
+///  Source address - always 0x80
+///  Message type - see message commands in Utility.hpp
+///  Message Length - length of message without header (everything up to msg length) or checksum
+///  Message - Bytes of the message - must be of length Message Length
+///  Checksum Calculation - add each of the bytes, mask the lower byte of sum and add cary byte,
+///  then invert sum
 class WriteMessage : public Message {
 public:
     /// WriteMessage constructor

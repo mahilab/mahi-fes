@@ -25,6 +25,9 @@
 
 namespace mahi {
 namespace fes {
+/// Virtual stimulator, designed to test the application of the stimulator class.
+/// This creates a gui which shows the incoming messages from the stimulator 
+/// separated by messages type.
 class VirtualStim : public mahi::gui::Application {
 public:
     /// VirtualStim Constructor

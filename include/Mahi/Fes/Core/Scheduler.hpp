@@ -37,7 +37,7 @@ public:
     bool create_scheduler(HANDLE& hComm_, const unsigned char sync_msg, unsigned int duration,
                           mahi::util::Time setup_time);
     /// add an event to the stimulator, and sleep for a short time to let the UECU process
-    bool add_event(Channel channel_, mahi::util::Time sleep_time,
+    bool add_event(Channel channel_, mahi::util::Time sleep_time, bool is_virtual_,
                    unsigned char event_type = STIM_EVENT);
     /// enable the scheduler
     void enable();
@@ -65,7 +65,7 @@ public:
     bool send_sync_msg();
     /// return whether or not the scheduler is enabled
     bool is_enabled();
-    
+
 private:
     unsigned char      m_id;         // the schedule id
     std::vector<Event> m_events;     // vector of events for the current scheduler

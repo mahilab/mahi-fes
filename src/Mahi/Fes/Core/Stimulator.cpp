@@ -32,10 +32,11 @@ namespace mahi {
 namespace fes {
 
 Stimulator::Stimulator(const std::string& name_, const std::string& com_port_,
-                       std::vector<Channel>& channels_, size_t size_) :
+                       std::vector<Channel>& channels_, size_t size_, bool is_virtual_) :
     m_name(name_),
     m_com_port(com_port_),
     m_enabled(false),
+    m_is_virtual(is_virtual_),
     m_channels(channels_),
     m_scheduler(),
     num_events(size_),
@@ -171,28 +172,6 @@ bool Stimulator::configure_port() {  // configure_port establishes the settings 
 bool Stimulator::initialize_board() {
     // delay time after sending setup messages of serial comm
 
-    // Create byte array
-    // Structure of byte arrays:
-    //  Destination address - always 0x04
-    //  Source address - always 0x80
-    //  Message type - see message commands in header file
-    //  Message Length - length of message without header (everything up to msg length) or checksum
-    //  Message - Bytes of the message - must be of length Message Length
-    //  Checksum Calculation - add each of the bytes, mask the lower byte of sum and add cary byte,
-    //  then invert sum
-
-    // Structure of channel setup messages:
-    //  1 byte:  Port channel - lower 4 bits are channel, upper for bits are port (always 0): aka
-    //  always 0x0a where a is channel number 1 byte:  Amplitude limit - max amplitude the channel
-    //  will outport 1 byte:  Pulse Width Limit - max pulse with that channel will output 2 bytes:
-    //  Interphase Delay in usec - space between phases of the waveform (can be from 10-65535) 1
-    //  byte:  Aspect Ratio - designates the proportion of the amplitude of the first phase to the
-    //  second phase.
-    //             - The lower 4 bits represent the first phase and the upper 4 bits represent the
-    //             second phase. 0x11 is 1 to 1 ratio
-    //  1 byte:  AnodeCathode - for 4 bipolar channels (what we have) these are 0x01, 0x23, 0x45,
-    //  0x67 respectively
-
     for (auto i = 0; i < m_channels.size(); i++) {
         if (!m_channels[i].setup_channel(m_hComm, m_delay_time)) {
             return false;
@@ -277,10 +256,6 @@ bool Stimulator::update() {
     if (is_enabled()) {
         {
             std::lock_guard<std::mutex> lock(m_mtx);
-            // amplitudes.resize(num_events);
-            // pulsewidths.resize(num_events);
-            // max_amplitudes.resize(num_events);
-            // max_pulsewidths.resize(num_events);
             for (size_t i = 0; i < m_scheduler.get_num_events(); i++) {
                 amplitudes[i]      = m_scheduler.get_amp(m_channels[i]);
                 pulsewidths[i]     = m_scheduler.get_pw(m_channels[i]);
@@ -289,8 +264,15 @@ bool Stimulator::update() {
             }
         }
         bool success = m_scheduler.update();
-        // check_inc_messages();
-        read_all();
+        std::vector<ReadMessage> incoming_messages = get_all_messages(m_hComm);
+        for (size_t i = 0; i < incoming_messages.size(); i++){
+            if (incoming_messages[i].is_valid()){
+                LOG(Error) << "Return message (below) either invalid or an error. Disabling stimulator.";
+                print_message(incoming_messages[i].get_message());
+                success = false;
+            }
+        }
+        if (!success) disable();
         return success;
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not updating";
@@ -308,15 +290,17 @@ bool Stimulator::create_scheduler(const unsigned char sync_msg, double frequency
 
     if (is_enabled()) {
         bool success = m_scheduler.create_scheduler(m_hComm, sync_msg, duration, m_delay_time);
-        ReadMessage scheduler_created_msg(read_message(m_hComm, true));
-        if (scheduler_created_msg.is_valid()){
-            m_scheduler.set_id(scheduler_created_msg.get_data()[0]);
-        }
-        else{
-            LOG(Error) << "Scheduler created return message (below) was either invalid or an error. Disabling stimulator.";
-            print_message(scheduler_created_msg.get_message());
-            disable();
-            success = false;
+        if (!m_is_virtual){
+            ReadMessage scheduler_created_msg(read_message(m_hComm, true));
+            if (scheduler_created_msg.is_valid()){
+                m_scheduler.set_id(scheduler_created_msg.get_data()[0]);
+            }
+            else{
+                LOG(Error) << "Scheduler created return message (below) was either invalid or an error. Disabling stimulator.";
+                print_message(scheduler_created_msg.get_message());
+                disable();
+                success = false;
+            }
         }
         return success;
     } else {
@@ -328,7 +312,6 @@ bool Stimulator::create_scheduler(const unsigned char sync_msg, double frequency
 bool Stimulator::add_event(Channel channel_, unsigned char event_type) {
     if (is_enabled()) {
         bool success = m_scheduler.add_event(channel_, m_delay_time, event_type);
-        // check_inc_messages();
         return success;
     } else {
         LOG(Error) << "Stimulator has not yet been enabled. Not adding event to scheduler";

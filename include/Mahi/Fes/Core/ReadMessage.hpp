@@ -25,6 +25,18 @@ namespace fes {
 #define CRC_SEED 0xFFFF  // seed value for doing the crc calculation
 #define CRC_POLY 0xA001  // poly value for doing the crc calculation
 
+/// The UECU was originally designed to work with a device called the Amulet. Because
+/// of this, some of the information in these messages are not important. So anything
+/// starting with the word Amulet is not important for our use, except in reading the
+/// correct ammount of information and verifying the message was correct
+/// Structure of byte arrays:
+///  Amulet command - always 0x02, 0x34
+///  Amulet memory address - always 0xAA
+///  Amulet Message Length - length of message without Amulet CRC
+///  UECU Destination address - always 0x04
+///  UECU Source address - always 0x80
+///  UECU Message Length - length of UECU message without header (everything up to msg length) or CRC
+///  UECU Message - Bytes of the message - must be of length UECU Message Length
 class ReadMessage : public Message {
 public:
     /// ReadMessage constructor

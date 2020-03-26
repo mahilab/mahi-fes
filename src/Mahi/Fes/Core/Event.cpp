@@ -29,12 +29,13 @@ namespace mahi {
 namespace fes {
 
 Event::Event(HANDLE& hComm_, unsigned char schedule_id_, int delay_time_, Channel channel_,
-             unsigned char event_id_, unsigned int pulse_width_, unsigned int amplitude_,
+             unsigned char event_id_, bool is_virtual_, unsigned int pulse_width_, unsigned int amplitude_,
              unsigned char event_type_, unsigned char priority_, unsigned char zone_) :
     m_hComm(hComm_),
     m_schedule_id(schedule_id_),
     m_delay_time(delay_time_),
     m_channel(channel_),
+    m_is_virtual(is_virtual_),
     m_pulse_width(pulse_width_),
     m_amplitude(amplitude_),
     m_event_type(event_type_),
@@ -70,14 +71,16 @@ bool Event::create_event() {
 
     if (create_event_message.write(m_hComm, "Creating Event")) {
         sleep(milliseconds(100));
-        ReadMessage event_created_msg(read_message(m_hComm, true));
-        if (event_created_msg.is_valid()){
-            set_event_id(event_created_msg.get_data()[0]);
-        }
-        else{
-            LOG(Error) << "Event created return message (below) either invalid or an error. Returning false.";
-            print_message(event_created_msg.get_message());
-            return false;
+        if (!m_is_virtual){
+            ReadMessage event_created_msg(read_message(m_hComm, true));
+            if (event_created_msg.is_valid()){
+                set_event_id(event_created_msg.get_data()[0]);
+            }
+            else{
+                LOG(Error) << "Event created return message (below) either invalid or an error. Returning false.";
+                print_message(event_created_msg.get_message());
+                return false;
+            }
         }
         return true;
     } else {

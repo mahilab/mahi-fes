@@ -20,16 +20,22 @@
 
 namespace mahi {
 namespace fes {
-class Event {
+
 #define DELETE_EVENT_LEN        0x01
 #define CHANGE_EVENT_PARAMS_LEN 0x04
 #define STIM_EVENT              0x03
 
+/// An event controls what happens on a single channel in the scheduler. The scheduler must
+/// be created before an event can be added, because the event is takes the schedule id as
+/// a parameter. The event is the underlying mechanism that controls any real-time control,
+/// as parameters are changed using set_{parameter}, and update sends a message to the UECU
+/// with the actual update.
+class Event {
 public:
     /// Event constructor
     Event(HANDLE& hComm, unsigned char schedule_id_, int delay_time_, Channel channel_, unsigned char event_id_,
-          unsigned int pulse_width_ = 0, unsigned int amplitude_ = 0, unsigned char event_type_ = STIM_EVENT,
-          unsigned char priority_ = 0x00, unsigned char zone_ = 0x00);
+          bool is_virtual_, unsigned int pulse_width_ = 0, unsigned int amplitude_ = 0,
+          unsigned char event_type_ = STIM_EVENT, unsigned char priority_ = 0x00, unsigned char zone_ = 0x00);
     /// Event destructor
     ~Event();
     /// Sends the message to the UECU to create a new event given the constructor params
@@ -66,6 +72,7 @@ private:
     unsigned int  m_max_amplitude;    // max amplitude allowed for the evenet
     unsigned int  m_max_pulse_width;  // max pulse width allowed for the event
     unsigned char m_zone;             // unused (should be 0x00)
+    bool          m_is_virtual;       // determines whether or not to wait for return messages
 };
 }  // namespace fes
 }  // namespace mahi

@@ -28,8 +28,8 @@ Scheduler::Scheduler() : m_id(0x01) {}
 
 Scheduler::~Scheduler() { disable(); }
 
-bool Scheduler::create_scheduler(HANDLE& hComm_, const unsigned char sync_char_,
-                                 unsigned int duration, Time setup_time) {
+bool Scheduler::create_scheduler(HANDLE& hComm_, const unsigned char sync_char_, unsigned int duration,
+                                 Time setup_time) {
     m_sync_char = sync_char_;
 
     m_hComm = hComm_;
@@ -43,7 +43,7 @@ bool Scheduler::create_scheduler(HANDLE& hComm_, const unsigned char sync_char_,
                                             SRC_ADR,              // Source
                                             CREATE_SCHEDULE_MSG,  // Msg type
                                             CREATE_SCHED_LEN,     // Message length
-                                            m_sync_char,            // sync character
+                                            m_sync_char,          // sync character
                                             duration_chars[0],    // schedule duration (byte 1)
                                             duration_chars[1],    // schedule duration (byte 2)
                                             0x00};                // checksum placeholder
@@ -65,7 +65,7 @@ bool Scheduler::halt_scheduler() {
                                            SRC_ADR,   // Source
                                            HALT_MSG,  // Msg type
                                            HALT_LEN,  // Msg len
-                                           m_id,        // Schedule ID
+                                           m_id,      // Schedule ID
                                            0x00};     // Checksum placeholder
 
         WriteMessage halt_message(halt);
@@ -77,14 +77,13 @@ bool Scheduler::halt_scheduler() {
     }
 }
 
-bool Scheduler::add_event(Channel channel_, Time sleep_time, unsigned char event_type) {
+bool Scheduler::add_event(Channel channel_, Time sleep_time, bool is_virtual_, unsigned char event_type) {
     unsigned int num_events = (unsigned int)m_events.size();
 
     if (m_enabled) {
         for (unsigned int i = 0; i < num_events; i++) {
             if (m_events[i].get_channel_num() == channel_.get_channel_num()) {
-                LOG(Error)
-                    << "Did not add event because an event already existed with that channel.";
+                LOG(Error) << "Did not add event because an event already existed with that channel.";
                 return false;
             }
         }
@@ -93,10 +92,10 @@ bool Scheduler::add_event(Channel channel_, Time sleep_time, unsigned char event
         auto delay_time = 5 * num_events;  // ms
 
         // add event to list of events
-        m_events.push_back(Event(m_hComm, m_id, delay_time, channel_, (unsigned char)(num_events + 1)));
-        
+        m_events.push_back(Event(m_hComm, m_id, delay_time, channel_, (unsigned char)(num_events + 1),is_virtual_));
+
         sleep(sleep_time);
-        
+
         return true;
     } else {
         LOG(Error) << "Scheduler is not yet enabled. ";
@@ -110,7 +109,7 @@ bool Scheduler::send_sync_msg() {
                                            SRC_ADR,       // Source
                                            SYNC_MSG,      // Msg type
                                            SYNC_MSG_LEN,  // Message length
-                                           m_sync_char,     // sync character
+                                           m_sync_char,   // sync character
                                            0x00};         // Checksum placeholder
 
         WriteMessage sync_message(sync);
@@ -140,7 +139,7 @@ void Scheduler::disable() {
                                             SRC_ADR,              // Source
                                             DELETE_SCHEDULE_MSG,  // Msg type
                                             DEL_SCHED_LEN,        // Message length
-                                            m_id,                   // Schedule ID
+                                            m_id,                 // Schedule ID
                                             0x00};                // Checksum placeholder
 
     WriteMessage del_sched_message(del_sched);

@@ -38,6 +38,10 @@ namespace fes {
 #define ONE_TO_ONE 0x11
 #define TWO_TO_ONE 0x21
 
+/// The stimulator has 8 channels, and these channels are passed into the stimulator to see
+/// what is available. This means that channels are created first, and controls much of the
+/// behaviour of the stimulator by defining max values for each channel, interphase delays,
+/// and aspect ratios. Any command applied to the channels will be based on these values.
 class Channel {
 public:
     /// Channel constructor

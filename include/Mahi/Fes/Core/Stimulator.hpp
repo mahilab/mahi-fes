@@ -32,7 +32,7 @@ namespace fes {
 class Stimulator {
 public:
     /// Stimulator constructor
-    Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_);
+    Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_, bool is_virtual_ = false);
     /// Stimulator destructor
     ~Stimulator();
     /// open, configure, and initialize the serial communication for use with the board
@@ -98,6 +98,7 @@ private:
     std::string             m_name;               // name of the stimulator
     std::string             m_com_port;           // comport that the UECU is written to from. should be in format COMX or COMXX
     bool                    m_enabled;            // shows if the stimulator has been enabled
+    bool                    m_is_virtual;         // determines whether or not to wait for responses from the stimulator
     std::vector<Channel>    m_channels;           // vector of channels enabled by the stim board
     Scheduler               m_scheduler;          // scheduler which handles events
     int                     m_inc_msg_count = 0;  // number of messages the stimulator has received
