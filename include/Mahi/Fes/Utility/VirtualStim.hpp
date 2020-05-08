@@ -38,7 +38,7 @@ public:
     /// based on inputs from the comport
     void poll();
     /// run the update to refresh the display of the application window
-    void update();
+    void update() override;
 
 private:
     struct SerialMessage {

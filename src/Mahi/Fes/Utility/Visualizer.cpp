@@ -25,7 +25,7 @@ namespace mahi {
 namespace fes {
 
 Visualizer::Visualizer(Stimulator* stimulator_) :
-    Application(),
+    Application(500,500,"Visualizer"),
     m_stimulator(stimulator_),
     m_amp(m_stimulator->amplitudes),
     m_pw(m_stimulator->pulsewidths),
@@ -35,20 +35,10 @@ Visualizer::Visualizer(Stimulator* stimulator_) :
     m_channels(m_stimulator->get_channels()) {
     // initialize theme
     ImGui::StyleColorsLight();
-    hide_window();
 
-    // Add plotting parameters necessary
-    m_plot_interface.x_axis.minimum          = 0;
-    m_plot_interface.x_axis.maximum          = 10;
-    m_plot_interface.y_axis.minimum          = -1;
-    m_plot_interface.y_axis.maximum          = float(*max_element(m_max_amp.begin(), m_max_amp.end()));
-    m_plot_interface.x_axis.show_tick_labels = true;
-
-    m_items.resize(m_num_channels);
     for (auto i = 0; i < m_num_channels; i++) {
-        m_items[i].color = Grays::Gray50;
-        m_items[i].data.reserve(20000);
-        m_items[i].size = 3;
+        ScrollingData new_scroll_data;
+        channel_data.push_back(new_scroll_data);
     }
     m_elapse_clock.restart();
 }
@@ -134,28 +124,34 @@ void Visualizer::update() {
         ImGui::SameLine();
         ImGui::PopItemWidth();
         ImGui::PushItemWidth(75);
-        ImGui::Checkbox(("##Plot" + std::to_string(i)).c_str(), &m_items[i].show);
         ImGui::EndGroup();
         ImGui::PopItemWidth();
         ImGui::Separator();
         ImGui::Separator();
     }
-
-    for (auto i = 0; i < m_num_channels; i++) {
-        ImGui::PlotItemBufferPoint(m_items[i], static_cast<float>(time().as_seconds()),
-                                   static_cast<float>(m_amp[i]), 20000);
-    }
-    m_plot_interface.x_axis.minimum = (float)m_elapse_clock.get_elapsed_time().as_seconds() - 10;
-    m_plot_interface.x_axis.maximum = (float)m_elapse_clock.get_elapsed_time().as_seconds();
-
+   
     ImGui::EndGroup();
     ImGui::SameLine();
-    std::vector<ImGui::PlotItem> plot_items;
-    for (auto i = 0; i < m_num_channels; i++) {
-        m_items[i].color = m_color[i];
-    }
 
-    ImGui::Plot("Position", m_plot_interface, m_items);
+    float t = (float)m_elapse_clock.get_elapsed_time().as_seconds();
+    for (auto i = 0; i < m_num_channels; i++) {
+        channel_data[i].AddPoint(t,m_amp[i]);
+    }
+    
+    ImGui::PushPlotStyleVar(ImPlotStyleVar_LineWeight, 3);
+    
+    ImGui::SetNextPlotRangeX(t - 10, t, ImGuiCond_Always);
+    ImGui::SetNextPlotRangeY(0,100);
+    if(ImGui::BeginPlot("##FES Plot", "Time (s)", "Amplitude(mA)", {-1,-1}, ImPlotFlags_Default, rt_axis, rt_axis)){
+            for (size_t i = 0; i < m_num_channels; i++) {
+                ImGui::PushPlotColor(ImPlotCol_Line, m_color[i]);
+                ImGui::Plot(("Channel "+std::to_string(i)).c_str(), &channel_data[i].Data[0].x, &channel_data[i].Data[0].y, channel_data[i].Data.size(), channel_data[i].Offset, 2 * sizeof(float));
+                ImGui::PopPlotColor();
+            }
+            ImGui::EndPlot();
+    }
+    ImGui::PopPlotStyleVar();
+
     ImGui::End();
 
     for (size_t i = 0; i < m_num_channels; i++) {

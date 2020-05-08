@@ -30,7 +30,7 @@ namespace mahi {
 namespace fes {
 
 VirtualStim::VirtualStim(const std::string& com_port_) :
-    Application(),
+    Application(500,500,"Virtual Stim"),
     m_com_port(com_port_),
     m_recent_messages(39) {
     open_port();
