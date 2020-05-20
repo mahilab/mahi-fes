@@ -33,7 +33,7 @@ int main() {
     channels.push_back(wrist);
 
     // Create stim board with a name, comport, and channels to add
-    Stimulator stim("UECU Board", "COM11", channels, channels.size());
+    Stimulator stim("UECU Board", "COM11", channels, channels.size(), false);
 
     // Initialize scheduler with the sync character and frequency of scheduler in hertz
     stim.create_scheduler(0xAA, 40);
@@ -56,10 +56,8 @@ int main() {
     while (!stop) {
         {
             // update the pulsewidth of each of the stimulation events
-            stim.set_amp(bicep, 40 + int(10 * sin(t)));
-            stim.set_amp(tricep, 30 + int(10 * sin(t)));
-            stim.set_amp(forearm, 20 + int(10 * sin(t)));
-            stim.set_amp(wrist, 10 + int(10 * sin(t)));
+            // stim.set_amp(bicep, 60);
+            // stim.write_pw(bicep, 13 + int(10 * sin(t)));
 
             // command the stimulation patterns to be sent to the stim board
             stim.update();
@@ -70,7 +68,7 @@ int main() {
     // disable events, schedulers, boards, etc
     stim.disable();
 
-    // viz_thread.join();
+    viz_thread.join();
 
     return 0;
 }

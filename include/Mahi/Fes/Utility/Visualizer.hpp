@@ -21,7 +21,7 @@ public:
 
 private:
     ImGuiInputTextFlags          m_enabled_flags = 0;  // flags for showing whether user can read/write or just read
-    int                          rt_axis = ImAxisFlags_Default;// & ImAxisFlags_TickLabels & ImAxisFlags_GridLines;  // Flags for Realtime axis
+    int                          rt_axis = ImPlotAxisFlags_Default;// & ImAxisFlags_TickLabels & ImAxisFlags_GridLines;  // Flags for Realtime axis
     Stimulator *                 m_stimulator;    // stimulator pointer holding information to read
     std::vector<int>             m_amp;           // amplitudes from the stimulator
     std::vector<int>             m_pw;            // pulsewidths from the stimulator
@@ -62,7 +62,8 @@ private:
         }
     };
 
-    std::vector<ScrollingData> channel_data;
+    std::vector<ScrollingData> channel_data_amp;
+    std::vector<ScrollingData> channel_data_pw;
 };
 }  // namespace fes
 }  // namespace mahi

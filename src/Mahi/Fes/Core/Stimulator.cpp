@@ -166,6 +166,11 @@ bool Stimulator::configure_port() {  // configure_port establishes the settings 
         return false;
     }
 
+    PurgeComm(m_hComm,PURGE_TXABORT);
+    PurgeComm(m_hComm,PURGE_RXABORT);
+    PurgeComm(m_hComm,PURGE_RXCLEAR);
+	PurgeComm(m_hComm,PURGE_TXCLEAR);
+
     return true;
 }
 
@@ -266,7 +271,7 @@ bool Stimulator::update() {
         bool success = m_scheduler.update();
         std::vector<ReadMessage> incoming_messages = get_all_messages(m_hComm);
         for (size_t i = 0; i < incoming_messages.size(); i++){
-            if (incoming_messages[i].is_valid()){
+            if (!incoming_messages[i].is_valid()){
                 LOG(Error) << "Return message (below) either invalid or an error. Disabling stimulator.";
                 print_message(incoming_messages[i].get_message());
                 success = false;

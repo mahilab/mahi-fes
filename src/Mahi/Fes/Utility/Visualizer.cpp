@@ -37,8 +37,10 @@ Visualizer::Visualizer(Stimulator* stimulator_) :
     ImGui::StyleColorsLight();
 
     for (auto i = 0; i < m_num_channels; i++) {
-        ScrollingData new_scroll_data;
-        channel_data.push_back(new_scroll_data);
+        ScrollingData new_scroll_data_amp;
+        ScrollingData new_scroll_data_pw;
+        channel_data_amp.push_back(new_scroll_data_amp);
+        channel_data_pw.push_back(new_scroll_data_pw);
     }
     m_elapse_clock.restart();
 }
@@ -135,22 +137,24 @@ void Visualizer::update() {
 
     float t = (float)m_elapse_clock.get_elapsed_time().as_seconds();
     for (auto i = 0; i < m_num_channels; i++) {
-        channel_data[i].AddPoint(t,m_amp[i]);
+        channel_data_amp[i].AddPoint(t,m_amp[i]);
+        channel_data_pw[i].AddPoint(t,m_pw[i]);
     }
     
-    ImGui::PushPlotStyleVar(ImPlotStyleVar_LineWeight, 3);
+    ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 3);
     
-    ImGui::SetNextPlotRangeX(t - 10, t, ImGuiCond_Always);
-    ImGui::SetNextPlotRangeY(0,100);
-    if(ImGui::BeginPlot("##FES Plot", "Time (s)", "Amplitude(mA)", {-1,-1}, ImPlotFlags_Default, rt_axis, rt_axis)){
+    ImPlot::SetNextPlotLimitsX(t - 10, t, ImGuiCond_Always);
+    ImPlot::SetNextPlotLimitsY(0,100);
+    if(ImPlot::BeginPlot("##FES Plot", "Time (s)", "Amplitude(mA)", {-1,-1}, ImPlotFlags_Default, rt_axis, rt_axis)){
             for (size_t i = 0; i < m_num_channels; i++) {
-                ImGui::PushPlotColor(ImPlotCol_Line, m_color[i]);
-                ImGui::Plot(("Channel "+std::to_string(i)).c_str(), &channel_data[i].Data[0].x, &channel_data[i].Data[0].y, channel_data[i].Data.size(), channel_data[i].Offset, 2 * sizeof(float));
-                ImGui::PopPlotColor();
+                ImPlot::PushStyleColor(ImPlotCol_Line, m_color[i]);
+                ImPlot::PlotLine(("Channel "+std::to_string(i) + " Amplitude").c_str(), &channel_data_amp[i].Data[0].x, &channel_data_amp[i].Data[0].y, channel_data_amp[i].Data.size(), channel_data_amp[i].Offset, 2 * sizeof(float));
+                ImPlot::PlotLine(("Channel "+std::to_string(i) + " Pulsewidth").c_str(), &channel_data_pw[i].Data[0].x, &channel_data_pw[i].Data[0].y, channel_data_pw[i].Data.size(), channel_data_pw[i].Offset, 2 * sizeof(float));
+                ImPlot::PopStyleColor();
             }
-            ImGui::EndPlot();
+            ImPlot::EndPlot();
     }
-    ImGui::PopPlotStyleVar();
+    ImPlot::PopStyleVar();
 
     ImGui::End();
 

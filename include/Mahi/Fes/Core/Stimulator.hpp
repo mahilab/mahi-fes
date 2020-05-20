@@ -71,6 +71,7 @@ public:
     /// return the name of the stimulator
     std::string get_name();
 
+    HANDLE m_hComm;                  // serial handle to the appropriate UECU MOVE THIS BACK
     size_t                   num_events;       // number of events the stimulator is handling
     std::vector<int>         amplitudes;       // vector of amplitudes corresponding to channels
     std::vector<int>         pulsewidths;      // vector of pulsewidths corresponding to channels
@@ -90,7 +91,7 @@ private:
     /// read all incoming messages from the stimulator
     void read_all();
 
-    HANDLE m_hComm;                  // serial handle to the appropriate UECU
+
     DCB    m_dcbSerialParams = {0};  // serial parameters to handle the serial communication to UECU
 
     mahi::util::Time m_delay_time = mahi::util::milliseconds(100);  // delay time when sending messages
