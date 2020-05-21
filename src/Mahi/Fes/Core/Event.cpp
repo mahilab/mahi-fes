@@ -61,7 +61,7 @@ bool Event::create_event() {
                                                delay_time_chars[1],  // Delay time (byte 2)
                                                m_priority,             // priority (default none)
                                                STIM_EVENT,           // Event type
-                                               m_channel.get_channel_num(),   // Channel number
+                                               m_channel.get_board_channel_num(),   // Channel number
                                                (unsigned char)m_pulse_width,  // Pulse Width
                                                (unsigned char)m_amplitude,    // Amplitude
                                                m_zone,                        // Zone
@@ -160,6 +160,8 @@ bool Event::delete_event() {
         return false;
     }
 }
+
+Channel Event::get_channel() { return m_channel; }
 
 unsigned char Event::get_channel_num() { return m_channel.get_channel_num(); }
 

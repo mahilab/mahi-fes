@@ -32,7 +32,7 @@ namespace fes {
 class Stimulator {
 public:
     /// Stimulator constructor
-    Stimulator(const std::string& name_, const std::string& com_port_, std::vector<Channel>& channels_, size_t size_, bool is_virtual_ = false);
+    Stimulator(const std::string& name_, std::vector<Channel>& channels_,  const std::string& com_port_1_,  const std::string& com_port_2_ = "NONE", bool is_virtual_ = false);
     /// Stimulator destructor
     ~Stimulator();
     /// open, configure, and initialize the serial communication for use with the board
@@ -71,7 +71,6 @@ public:
     /// return the name of the stimulator
     std::string get_name();
 
-    HANDLE m_hComm;                  // serial handle to the appropriate UECU MOVE THIS BACK
     size_t                   num_events;       // number of events the stimulator is handling
     std::vector<int>         amplitudes;       // vector of amplitudes corresponding to channels
     std::vector<int>         pulsewidths;      // vector of pulsewidths corresponding to channels
@@ -81,30 +80,38 @@ public:
 
 private:
     /// open the comport that the UECU is controlled from
-    bool open_port();
+    bool open_port(HANDLE* hComm, std::string com_port);
     /// configure the comport that the UECU is controlled from
-    bool configure_port();
+    bool configure_port(HANDLE* hComm);
     /// initialize the board by enabling each of the channels given setup parameters
     bool initialize_board();
     /// halt the stimulator and close the comports
     void close_stimulator();
     /// read all incoming messages from the stimulator
-    void read_all();
+    // void read_all();
 
 
     DCB    m_dcbSerialParams = {0};  // serial parameters to handle the serial communication to UECU
 
     mahi::util::Time m_delay_time = mahi::util::milliseconds(100);  // delay time when sending messages
 
-    std::string             m_name;               // name of the stimulator
-    std::string             m_com_port;           // comport that the UECU is written to from. should be in format COMX or COMXX
-    bool                    m_enabled;            // shows if the stimulator has been enabled
-    bool                    m_is_virtual;         // determines whether or not to wait for responses from the stimulator
-    std::vector<Channel>    m_channels;           // vector of channels enabled by the stim board
-    Scheduler               m_scheduler;          // scheduler which handles events
-    int                     m_inc_msg_count = 0;  // number of messages the stimulator has received
-    std::queue<ReadMessage> m_inc_messages;       // queue of incoming messages
-    std::mutex              m_mtx;                // mutex for handling simultaneous reading/writing
+    HANDLE                   m_hComm_1;            // serial handle to the appropriate UECU first set of 4 channels
+    HANDLE                   m_hComm_2;            // serial handle to the appropriate UECU second set of 4 channels
+    std::vector<HANDLE*>     m_hComms;             // vector of pointers to m_hComm_1 and m_hComm_2
+    std::string              m_name;               // name of the stimulator
+    std::string              m_com_port_1;         // comport that the 2nd set of 4 channels for the UECU is written to from. should be in format COMX or COMXX.
+    std::string              m_com_port_2;         // comport that the 2nd set of 4 channels for the UECU is written to from. should be in format COMX or COMXX. This defaults to "NONE"
+    std::vector<std::string> m_com_ports;          // vector of {m_com_port_1, m_com_port_2} to iterate over
+    size_t                   m_num_ports = 1;      // total number of comports. This is 1 if m_com_port_2 is "NONE" and 2 if m_com_port_2 is COMX
+    bool                     m_enabled;            // shows if the stimulator has been enabled
+    bool                     m_is_virtual;         // determines whether or not to wait for responses from the stimulator
+    std::vector<Channel>     m_channels;           // vector of channels enabled by the stim board
+    Scheduler                m_scheduler_1;        // scheduler which handles events
+    Scheduler                m_scheduler_2;        // scheduler which handles events
+    std::vector<Scheduler*>  m_schedulers;
+    int                      m_inc_msg_count = 0;  // number of messages the stimulator has received
+    std::queue<ReadMessage>  m_inc_messages;       // queue of incoming messages
+    std::mutex               m_mtx;                // mutex for handling simultaneous reading/writing
 };
 }  // namespace fes
 }  // namespace mahi

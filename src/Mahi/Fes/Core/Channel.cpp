@@ -33,6 +33,8 @@ Channel::Channel(const std::string& name_, unsigned char channel_num_, unsigned 
     m_name(name_),
     m_aspect(aspect_),
     m_channel_num(channel_num_),
+    m_board_num(channel_num_ / 0x04),
+    m_board_channel_num(channel_num_ % 0x04),
     m_an_ca_nums(an_ca_nums_),
     m_max_amp(max_amp_),
     m_max_pw(max_pw_),
@@ -49,7 +51,7 @@ bool Channel::setup_channel(HANDLE serial_handle_, Time delay_time_) {
                                         SRC_ADR,                 // Source
                                         CHANNEL_SETUP_MSG,       // Msg type
                                         CH_SET_LEN,              // Msg len
-                                        m_channel_num,             // Channel
+                                        m_board_channel_num,             // Channel
                                         (unsigned char)m_max_amp,  // AmpLim
                                         (unsigned char)m_max_pw,   // PWLim
                                         ip_delay_bytes[0],       // IP delay (byte 1)
@@ -76,6 +78,10 @@ unsigned int Channel::get_max_pulse_width() { return m_max_pw; }
 void Channel::set_max_amplitude(unsigned int max_amp_) { m_max_amp = max_amp_; }
 
 void Channel::set_max_pulse_width(unsigned int max_pw_) { m_max_pw = max_pw_; }
+
+unsigned char Channel::get_board_num() { return m_board_num; }
+
+unsigned char Channel::get_board_channel_num() { return m_board_channel_num; }
 
 unsigned char Channel::get_channel_num() { return m_channel_num; }
 

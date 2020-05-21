@@ -158,7 +158,7 @@ void Scheduler::set_amp(Channel channel_, unsigned int amplitude_) {
         }
     }
     // if we didnt find the event, something is messed up, so return false
-    LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
+    LOG(Error) << "Did not find the correct event to update on channel " << channel_.get_channel_name() <<  ". Nothing has changed.";
 }
 
 unsigned int Scheduler::get_amp(Channel channel_) {
@@ -171,7 +171,7 @@ unsigned int Scheduler::get_amp(Channel channel_) {
         }
     }
     // if we didnt find the event, something is messed up, so return 0
-    LOG(Error) << "Did not find the correct event to pull from. Returning 0.";
+    LOG(Error) << "Did not find the correct event to pull from on channel " << channel_.get_channel_name() << ". Returning 0.";
     return 0;
 }
 
@@ -186,7 +186,7 @@ void Scheduler::write_pw(Channel channel_, unsigned int pw_) {
         }
     }
     // if we didnt find the event, something is messed up, so return false
-    LOG(Error) << "Did not find the correct event to update. Nothing has changed.";
+    LOG(Error) << "Did not find the correct event to update on channel " << channel_.get_channel_name() <<  ". Nothing has changed.";
 }
 
 unsigned int Scheduler::get_pw(Channel channel_) {
@@ -199,7 +199,7 @@ unsigned int Scheduler::get_pw(Channel channel_) {
         }
     }
     // if we didnt find the event, something is messed up, so return 0
-    LOG(Error) << "Did not find the correct event to pull from. Returning 0.";
+    LOG(Error) << "Did not find the correct event to pull from on channel " << channel_.get_channel_name() << ". Returning 0.";
     return 0;
 }
 
@@ -216,6 +216,8 @@ bool Scheduler::update() {
 }
 
 size_t Scheduler::get_num_events() { return m_events.size(); }
+
+std::vector<Event> Scheduler::get_events() { return m_events; }
 
 unsigned char Scheduler::get_id() { return m_id; }
 

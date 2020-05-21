@@ -12,24 +12,38 @@ using namespace mahi::util;
 using namespace mahi::gui;
 using namespace mahi::fes;
 
+// create global stop variable CTRL-C handler function
+ctrl_bool stop(false);
+bool      handler(CtrlEvent event) {
+    stop = true;
+    return true;
+}
+
 int main(int argc, char const *argv[]) {
+    // register ctrl-c handler
+    register_ctrl_handler(handler);
+
     // create channels of interest
     std::vector<Channel> channels;
 
+    // create new channel for bicep (Channel 1, Anode Cathode Pair 1, max amp 100 mA, max pw 250 us)
     Channel bicep("Bicep", CH_1, AN_CA_1, 100, 250);
     channels.push_back(bicep);
 
+    // create new channel for tricep (Channel 2, Anode Cathode Pair 2, max amp 100 mA, max pw 250 us)
     Channel tricep("Tricep", CH_2, AN_CA_2, 100, 250);
     channels.push_back(tricep);
 
-    Channel forearm("Forearm Pronation", CH_3, AN_CA_3, 100, 250);
-    channels.push_back(forearm);
+    // create new channel for pronator teres (Channel 3, Anode Cathode Pair 3, max amp 100 mA, max pw 250 us)
+    Channel pt("Pronator Teres", CH_3, AN_CA_3, 100, 250);
+    channels.push_back(pt);
 
-    Channel wrist("Wrist Flexion", CH_4, AN_CA_4, 100, 250);
-    channels.push_back(wrist);
+    // create new channel for brachioradialis (Channel 4, Anode Cathode Pair 4, max amp 100 mA, max pw 250 us)
+    Channel br("Brachioradialis", CH_4, AN_CA_4, 100, 250);
+    channels.push_back(br);
 
     // Create stim board with a name, comport, and channels to add
-    Stimulator stim("UECU Board", "COM11", channels, channels.size());
+    Stimulator stim("UECU Board", channels, "COM11");
 
     // Initialize scheduler with the sync character and frequency of scheduler in hertz
     stim.create_scheduler(0xAA, 100);
@@ -37,28 +51,27 @@ int main(int argc, char const *argv[]) {
     // Input which events will be added to the scheduler for updates
     stim.add_events(channels);
 
-    std::mutex mtx;
-    Timer      control_timer(milliseconds(50));
-    Time       current_t = Time::Zero;
-
-    stim.begin();
-
+    // start the visualization thread to run the gui. This is optional, but allows the stimulators to be updated through
+    // the gui rather than in code. The code will overwrite the gui, so if gui control is desired, remove updates in the
+    // while loop below
     std::thread viz_thread([&stim]() {
         Visualizer visualizer(&stim);
         visualizer.run();
     });
 
-    control_timer.restart();
+    // start sending stimulation to the board
+    stim.begin();
+
+    // set timer for our control loop
+    Timer timer(milliseconds(50), Timer::WaitMode::Hybrid);
+    timer.set_acceptable_miss_rate(0.05);
+    
+    // variable to keep track of our current time
+    double t(0.0);
 
     while (true) {
-        {
-            // std::lock_guard<std::mutex> lock(mtx);
-            // stim.set_amp(bicep,int(50+50*mel::sin(current_t.as_seconds())));
-            // stim.set_amp(tricep,int(50+50*mel::cos(current_t.as_seconds())));
-
-            stim.update();
-        }
-        current_t = control_timer.wait();
+        stim.update();
+        t = timer.wait().as_seconds();
     }
 
     viz_thread.join();

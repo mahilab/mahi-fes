@@ -48,6 +48,8 @@ public:
     unsigned int get_amplitude();
     /// returns the current pulsewidth
     unsigned int get_pulsewidth();
+    /// returns the channel attached to this event
+    Channel get_channel();
     /// returns the channel number of the channel attached to this event
     unsigned char get_channel_num();
     /// returns the name of the channel attached to this event

@@ -57,6 +57,8 @@ public:
     unsigned int get_pw(Channel channel_);
     /// return the number of events attached to the scheduler
     size_t get_num_events();
+    /// return the vector of events for the scheduler
+    std::vector<Event> get_events();
     /// send the message to halt the scheduler -> stopping all events attached to it
     bool halt_scheduler();
     /// command each of the events to write it's current pw and amplitude to the

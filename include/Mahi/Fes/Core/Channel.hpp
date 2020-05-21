@@ -56,7 +56,11 @@ public:
     unsigned int get_max_amplitude();
     /// return the max pulsewidth allowed by the channel
     unsigned int get_max_pulse_width();
-    /// return the channel number of the channel
+    /// return the board number for the channel (0 or 1)
+    unsigned char get_board_num();
+    /// return the internal channel number with respect to its board (0 through 3)
+    unsigned char get_board_channel_num();
+    /// return the channel number of the channel (0 through 7)
     unsigned char get_channel_num();
     /// return the name of the channel
     std::string get_channel_name();
@@ -69,6 +73,8 @@ private:
     std::string   m_name;         // name of the channel-this is used for changing channel parameters
     unsigned char m_aspect;       // the aspect ratio for the channel: (first 4 bits)/(second 4 bits)
     unsigned char m_channel_num;  // channel number as #defined in this file
+    unsigned char m_board_num;    // the board that the channel associates with
+    unsigned char m_board_channel_num; // the number that is referred to on the board
     unsigned char m_an_ca_nums;   // anode cathode channel numbers
     unsigned int  m_max_amp;      // maximum amplitude
     unsigned int  m_max_pw;       // maximum pulsewidth

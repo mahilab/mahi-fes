@@ -9,7 +9,7 @@
 namespace mahi {
 namespace fes {
 /// continues to read messages while messages are available and returns all read messages
-std::vector<ReadMessage> get_all_messages(HANDLE hComm);
+std::vector<ReadMessage> get_all_messages(std::vector<HANDLE*> hComms, size_t num_ports);
 /// currently prints out all of the new incoming messages in a readable format to the commmand line
 void process_inc_messages(HANDLE hComm, std::queue<ReadMessage> &inc_messages);
 /// reads a single message from the serial handle. 

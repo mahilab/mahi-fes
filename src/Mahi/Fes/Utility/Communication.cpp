@@ -6,17 +6,20 @@ using namespace mahi::util;
 
 namespace mahi {
 namespace fes {
-std::vector<ReadMessage> get_all_messages(HANDLE hComm) {
+std::vector<ReadMessage> get_all_messages(std::vector<HANDLE*> hComms, size_t num_ports) {
     std::vector<ReadMessage> incoming_messages;
-    // while there are still messages, continue to read them
-    while (true) {
-        std::vector<unsigned char> inc_message = read_message(hComm, false);
-        // if there was no recent message, exit.
-        if (inc_message.empty()){
-            break;
-        }
-        else{
-            incoming_messages.push_back(ReadMessage(inc_message));
+    for (size_t i = 0; i < num_ports; i++)
+    {
+        // while there are still messages, continue to read them
+        while (true) {
+            std::vector<unsigned char> inc_message = read_message(*hComms[i], false);
+            // if there was no recent message, exit.
+            if (inc_message.empty()){
+                break;
+            }
+            else{
+                incoming_messages.push_back(ReadMessage(inc_message));
+            }
         }
     }
     return incoming_messages;
