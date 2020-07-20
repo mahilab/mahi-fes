@@ -69,7 +69,7 @@ int main(int argc, char const *argv[]) {
     // variable to keep track of our current time
     double t(0.0);
 
-    while (true) {
+    while (!stop) {
         stim.update();
         t = timer.wait().as_seconds();
     }

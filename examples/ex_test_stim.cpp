@@ -36,12 +36,12 @@ int main() {
     Channel br("Brachioradialis", CH_4, AN_CA_4, 100, 250);
     channels.push_back(br);
 
-    // create new channel for brachioradialis (Channel 5, Anode Cathode Pair 1 - because it is a new board, max amp 100 mA, max pw 250 us)
-    Channel fcr("Flexor Carpi Radialis", CH_5, AN_CA_1, 100, 250);
-    channels.push_back(fcr);
+    // // create new channel for brachioradialis (Channel 5, Anode Cathode Pair 1 - because it is a new board, max amp 100 mA, max pw 250 us)
+    // Channel fcr("Flexor Carpi Radialis", CH_5, AN_CA_1, 100, 250);
+    // channels.push_back(fcr);
 
     // Create stim board with a name, channels to add, and comports used
-    Stimulator stim("UECU Board", channels, "COM11", "COM6");
+    Stimulator stim("UECU Board", channels, "COM11", "NONE", false);
 
     // Initialize scheduler with the sync character and frequency of scheduler in hertz. If using all 4 channels on a board,
     // this must be < 67 Hz because of how the channels are spaced out. The scheduler must have a period that can handle
@@ -60,6 +60,8 @@ int main() {
         visualizer.run();
     });
 
+    Clock test_clock;
+
     // start sending stimulation to the board
     stim.begin();
 
@@ -70,6 +72,8 @@ int main() {
     // variable to keep track of our current time
     double t(0.0);
 
+    enable_realtime();
+
     while (!stop) {
         {
             // update the pulsewidth of each of the stimulation events
@@ -78,7 +82,9 @@ int main() {
 
             // command the stimulation patterns to be sent to the stim board.
             // This is required whether using the gui or updating in code.
+            test_clock.restart();
             stim.update();
+            print_var(test_clock.get_elapsed_time().as_microseconds());
         }
         // wait for the loop to end
         t = timer.wait().as_seconds();
@@ -89,6 +95,8 @@ int main() {
 
     // join the visualizer thread *only if it was enabled earlier
     viz_thread.join();
+
+    disable_realtime();
 
     return 0;
 }

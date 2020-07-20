@@ -148,8 +148,8 @@ void Visualizer::update() {
     if(ImPlot::BeginPlot("##FES Plot", "Time (s)", "Amplitude(mA)", {-1,-1}, ImPlotFlags_Default, rt_axis, rt_axis)){
             for (size_t i = 0; i < m_num_channels; i++) {
                 ImPlot::PushStyleColor(ImPlotCol_Line, m_color[i]);
-                ImPlot::PlotLine(("Channel "+std::to_string(i) + " Amplitude").c_str(), &channel_data_amp[i].Data[0].x, &channel_data_amp[i].Data[0].y, channel_data_amp[i].Data.size(), channel_data_amp[i].Offset, 2 * sizeof(float));
-                ImPlot::PlotLine(("Channel "+std::to_string(i) + " Pulsewidth").c_str(), &channel_data_pw[i].Data[0].x, &channel_data_pw[i].Data[0].y, channel_data_pw[i].Data.size(), channel_data_pw[i].Offset, 2 * sizeof(float));
+                // ImPlot::PlotLine(("Channel "+std::to_string(i) + " Amplitude").c_str(), &channel_data_amp[i].Data[0].x, &channel_data_amp[i].Data[0].y, channel_data_amp[i].Data.size(), channel_data_amp[i].Offset, 2 * sizeof(float));
+                ImPlot::PlotLine(("Channel "+std::to_string(i+1) + " Pulsewidth").c_str(), &channel_data_pw[i].Data[0].x, &channel_data_pw[i].Data[0].y, channel_data_pw[i].Data.size(), channel_data_pw[i].Offset, 2 * sizeof(float));
                 ImPlot::PopStyleColor();
             }
             ImPlot::EndPlot();
