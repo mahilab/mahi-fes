@@ -145,7 +145,7 @@ void Visualizer::update() {
     
     ImPlot::SetNextPlotLimitsX(t - 10, t, ImGuiCond_Always);
     ImPlot::SetNextPlotLimitsY(0,100);
-    if(ImPlot::BeginPlot("##FES Plot", "Time (s)", "Amplitude(mA)", {-1,-1}, ImPlotFlags_Default, rt_axis, rt_axis)){
+    if(ImPlot::BeginPlot("##FES Plot", "Time (s)", "Amplitude(mA)", {-1,-1}, 0, rt_axis, rt_axis)){
             for (size_t i = 0; i < m_num_channels; i++) {
                 ImPlot::PushStyleColor(ImPlotCol_Line, m_color[i]);
                 // ImPlot::PlotLine(("Channel "+std::to_string(i) + " Amplitude").c_str(), &channel_data_amp[i].Data[0].x, &channel_data_amp[i].Data[0].y, channel_data_amp[i].Data.size(), channel_data_amp[i].Offset, 2 * sizeof(float));
