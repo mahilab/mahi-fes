@@ -47,11 +47,11 @@ public:
     /// set the amplitude for a single channel (event). This runs down to the event object
     void set_amp(Channel channel_, unsigned int amplitude_);
     /// set the amplitude for a vector of channels (events). This runs down to the event object
-    void set_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_);
+    void set_amps(std::vector<Channel> channels_, std::vector<unsigned int> amplitudes_);
     /// set the pulsewidth for a single channel (event). This runs down to the event object
     void write_pw(Channel channel_, unsigned int pw_);
     /// set the pulsewidth for a vector of channels (events). This runs down to the event object
-    void write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_);
+    void write_pws(std::vector<Channel> channels_, std::vector<unsigned int> pulsewidths_);
     /// update the max amplitude for a single channel. This runs down to the event object
     void update_max_amp(Channel channel_, unsigned int max_amp_);
     /// update the max pulsewidth for a single channel. This runs down to the event object

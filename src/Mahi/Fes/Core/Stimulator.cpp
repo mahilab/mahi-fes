@@ -245,13 +245,13 @@ void Stimulator::set_amp(Channel channel_, unsigned int amp_) {
     }
 }
 
-void Stimulator::set_amps(std::vector<Channel> channels_, std::vector<int> amplitudes_) {
+void Stimulator::set_amps(std::vector<Channel> channels_, std::vector<unsigned int> amplitudes_) {
     for (size_t i = 0; i < channels_.size(); i++) {
         set_amp(channels_[i], amplitudes_[i]);
     }
 }
 
-void Stimulator::write_pws(std::vector<Channel> channels_, std::vector<int> pulsewidths_) {
+void Stimulator::write_pws(std::vector<Channel> channels_, std::vector<unsigned int> pulsewidths_) {
     for (size_t i = 0; i < channels_.size(); i++) {
         write_pw(channels_[i], pulsewidths_[i]);
     }
