@@ -11,6 +11,7 @@ macro(mahi_fes_example target)
     set_target_properties(${target} PROPERTIES DEBUG_POSTFIX -d)
 endmacro(mahi_fes_example)
 
+mahi_fes_example(both_coms)
 mahi_fes_example(test_stim)
 mahi_fes_example(virtual_stim)
 mahi_fes_example(visualization)

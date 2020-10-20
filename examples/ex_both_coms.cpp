@@ -36,6 +36,22 @@ int main() {
     Channel br("Brachioradialis", CH_4, AN_CA_4, 100, 250);
     channels.push_back(br);
 
+    // create new channel for Flexor Carpi Radialis (Channel 5, Anode Cathode Pair 5, max amp 100 mA, max pw 250 us)
+    Channel flexor_carpi_radialis("Flexor Carpi Radialis", CH_5, AN_CA_1, 100, 250);
+    channels.push_back(flexor_carpi_radialis);
+
+    // create new channel for Palmaris Longus (Channel 6, Anode Cathode Pair 6, max amp 100 mA, max pw 250 us)
+    Channel palmaris_longus("Palmaris Longus", CH_6, AN_CA_2, 100, 250);
+    channels.push_back(palmaris_longus);
+
+    // create new channel for Flexor Carpi Ulnaris (Channel 7, Anode Cathode Pair 7, max amp 100 mA, max pw 250 us)
+    Channel flexor_carpi_ulnaris("Flexor Carpi Ulnaris", CH_7, AN_CA_3, 100, 250);
+    channels.push_back(flexor_carpi_ulnaris);
+
+    // create new channel for Extensor Carpi Radialis Longus (Channel 8, Anode Cathode Pair 8, max amp 100 mA, max pw 250 us)
+    Channel extensor_carpi_radialis_longus("Extensor Carpi Radialis Longus", CH_8, AN_CA_4, 100, 250);
+    channels.push_back(extensor_carpi_radialis_longus);
+
     // // create new channel for brachioradialis (Channel 5, Anode Cathode Pair 1 - because it is a new board, max amp 100 mA, max pw 250 us)
     // Channel fcr("Flexor Carpi Radialis", CH_5, AN_CA_1, 100, 250);
     // channels.push_back(fcr);

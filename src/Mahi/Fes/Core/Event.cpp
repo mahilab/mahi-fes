@@ -38,6 +38,8 @@ Event::Event(HANDLE& hComm_, unsigned char schedule_id_, int delay_time_, Channe
     m_is_virtual(is_virtual_),
     m_pulse_width(pulse_width_),
     m_amplitude(amplitude_),
+    m_last_pw(0),
+    m_last_amp(0),
     m_event_type(event_type_),
     m_priority(priority_),
     m_event_id(event_id_),
@@ -130,14 +132,20 @@ bool Event::update() {
                                              (unsigned char)m_amplitude,    // Amplitude to update
                                              0x00,   // Placeholder for other parameters
                                              0x00};  // Checksum placeholder
+                                             
+    if((m_last_pw != m_pulse_width) || (m_last_amp != m_amplitude)){
+        m_last_pw  = m_pulse_width;
+        m_last_amp = m_amplitude;
 
-    WriteMessage edit_event_message(edit_event);
+        WriteMessage edit_event_message(edit_event);
 
-    if (edit_event_message.write(m_hComm, "NONE")) {
-        return true;
-    } else {
-        return false;
+        if (edit_event_message.write(m_hComm, "NONE")) {
+            return true;
+        } else {
+            return false;
+        }
     }
+    else return true;
 }
 
 void Event::set_event_id(unsigned char event_id_){

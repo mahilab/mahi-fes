@@ -68,6 +68,8 @@ private:
     Channel       m_channel;          // channel attached to the event
     unsigned int  m_pulse_width;      // current pulse-width value
     unsigned int  m_amplitude;        // current amplitude value
+    unsigned int  m_last_pw;          // previous pulse-width value
+    unsigned int  m_last_amp;         // previous amplitude value
     unsigned char m_event_type;       // event type associated to the event
     unsigned char m_priority;         // priority level for events (less has more priority)
     unsigned char m_event_id;         // event id returned from the UECU at event creation time
